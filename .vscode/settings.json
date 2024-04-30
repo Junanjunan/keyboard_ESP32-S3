@@ -1,0 +1,16 @@
+{
+    "files.associations": {
+        "*.inc": "c",
+        "complex": "c",
+        "freertos.h": "c",
+        "esp_gatt_common_api.h": "c",
+        "btc_storage.h": "c",
+        "stack_config.h": "c",
+        "esp_bt_device.h": "c",
+        "esp_bt_main.h": "c",
+        "esp_gap_bt_api.h": "c",
+        "esp_hidd_api.h": "c",
+        "esp_hidd_prf_api.h": "c",
+        "hid_dev.h": "c"
+    }
+}
