@@ -8,7 +8,7 @@
 
 
 void app_main() {
-    connection_mode_t mode = 0;
+    connection_mode_t *mode = malloc(sizeof(connection_mode_t));
     // Initialize NVS
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -16,13 +16,5 @@ void app_main() {
       ret = nvs_flash_init();
     }
 
-    setup_mode_gpio();
-    while (1) {
-        connection_mode_t current_mode = detect_current_mode();
-        if (current_mode != mode) {
-            mode = current_mode;
-            ESP_LOGI("MODE", "changed mode: %d (0: USB, 1: BLE, 2: Wireless)", mode);
-        }
-        vTaskDelay(pdMS_TO_TICKS(500));
-    }
+    setup_mode_gpio(mode);
 }

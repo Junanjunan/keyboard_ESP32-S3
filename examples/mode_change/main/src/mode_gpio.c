@@ -1,31 +1,26 @@
 #include "driver/gpio.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/queue.h"
+#include "esp_attr.h"
+#include "esp_log.h"
 
 #define GPIO_USB_MODE           4
 #define GPIO_BLE_MODE           5
 #define GPIO_WIRELESS_MODE      6
 
 
+static QueueHandle_t gpio_evt_queue = NULL;
+
 /**
- * @brief   Set up GPIOs for mode selection
- * @param   None
+ * @brief   ISR handler for GPIO events
+ * @param   arg: Pointer to the GPIO number that triggered the interrupt, but casted to void* to use in gpio_isr_handler_add(esp_err_t gpio_isr_handler_add(gpio_num_t gpio_num, gpio_isr_t isr_handler, void *args))
  * @return  None
- * @note    Three pins are used for mode selection: USB, BLE, and Wireless
+ * @note    This function will send the GPIO number to the queue
  * **/
-void setup_mode_gpio() {
-    // Set GPIOs for USB, BLE, and Wireless mode selection
-    esp_rom_gpio_pad_select_gpio(GPIO_USB_MODE);
-    esp_rom_gpio_pad_select_gpio(GPIO_BLE_MODE);
-    esp_rom_gpio_pad_select_gpio(GPIO_WIRELESS_MODE);
-
-    // Configure GPIOs as input
-    gpio_set_direction(GPIO_USB_MODE, GPIO_MODE_INPUT);
-    gpio_set_direction(GPIO_BLE_MODE, GPIO_MODE_INPUT);
-    gpio_set_direction(GPIO_WIRELESS_MODE, GPIO_MODE_INPUT);
-
-    // Enable pull-up resistors
-    gpio_set_pull_mode(GPIO_USB_MODE, GPIO_PULLUP_ONLY);
-    gpio_set_pull_mode(GPIO_BLE_MODE, GPIO_PULLUP_ONLY);
-    gpio_set_pull_mode(GPIO_WIRELESS_MODE, GPIO_PULLUP_ONLY);
+static void IRAM_ATTR gpio_isr_handler(void* arg) {
+    uint32_t gpio_num = (uint32_t)arg;
+    xQueueSendFromISR(gpio_evt_queue, &gpio_num, NULL);
 }
 
 
@@ -35,19 +30,69 @@ typedef enum {
     MODE_WIRELESS
 } connection_mode_t;
 
+// Global variable to store the current mode
+connection_mode_t current_mode;
+
 /**
- * @brief   Detect the current mode based on the GPIOs
- * @param   None
- * @return  The current connection mode
- * @note    Mode is determined by the GPIOs: USB, BLE, and Wireless
+ * @brief   Task to handle GPIO events
+ * @param   arg: Pointer to the mode variable, but casted to void* to use in FreeRTOS task
+ * @return  None
+ * @note    This task will handle GPIO events and change the mode variable accordingly
  * **/
-connection_mode_t detect_current_mode() {
-    if (0 == gpio_get_level(GPIO_USB_MODE)) {
-        return MODE_USB;
-    } else if (0 == gpio_get_level(GPIO_BLE_MODE)) {
-        return MODE_BLE;
-    } else if (0 == gpio_get_level(GPIO_WIRELESS_MODE)) {
-        return MODE_WIRELESS;
+void gpio_task(void* arg) {
+    connection_mode_t *mode = (connection_mode_t*)arg;
+    uint32_t io_num;
+    while (1) {
+        if (xQueueReceive(gpio_evt_queue, &io_num, portMAX_DELAY)) {
+            switch (io_num) {
+                case GPIO_USB_MODE:
+                    *mode = MODE_USB;
+                    break;
+                case GPIO_BLE_MODE:
+                    *mode = MODE_BLE;
+                    break;
+                case GPIO_WIRELESS_MODE:
+                    *mode = MODE_WIRELESS;
+                    break;
+                default:
+                    ESP_LOGE("GPIO_TASK", "Unhandled GPIO number received");
+                    break;
+            }
+            if (*mode != current_mode) {
+                current_mode = *mode;
+                ESP_LOGI(__func__, "Changed mode is %d", current_mode);
+            }
+        }
     }
-    return MODE_USB; // Default mode
+}
+
+/**
+ * @brief   Set up GPIOs for mode selection
+ * @param   mode: Pointer to the mode variable
+ * @return  None
+ * @note    Three pins are used for mode selection: USB, BLE, and Wireless
+ * **/
+void setup_mode_gpio(connection_mode_t *mode) {
+    gpio_config_t io_conf = {
+        .intr_type = GPIO_INTR_NEGEDGE,  // Interrupt on falling edge
+        .mode = GPIO_MODE_INPUT,         // Set as input mode
+        .pin_bit_mask = (1ULL << GPIO_USB_MODE) | (1ULL << GPIO_BLE_MODE) | (1ULL << GPIO_WIRELESS_MODE),
+        .pull_up_en = 1,                 // Enable pull-up resistors
+        .pull_down_en = 0                // Disable pull-down resistors
+    };
+    gpio_config(&io_conf);
+
+    gpio_install_isr_service(0);  // Install ISR service with default configuration
+    gpio_isr_handler_add(GPIO_USB_MODE, gpio_isr_handler, (void*) GPIO_USB_MODE);
+    gpio_isr_handler_add(GPIO_BLE_MODE, gpio_isr_handler, (void*) GPIO_BLE_MODE);
+    gpio_isr_handler_add(GPIO_WIRELESS_MODE, gpio_isr_handler, (void*) GPIO_WIRELESS_MODE);
+
+    gpio_evt_queue = xQueueCreate(10, sizeof(uint32_t));
+    if (gpio_evt_queue == NULL) {
+        ESP_LOGE("GPIO_TASK", "Failed to create the queue");
+        // Optionally, handle error such as halting or rebooting
+        abort();
+    }
+
+    xTaskCreate(gpio_task, "gpio_task", 1024 * 4, (void*)mode, 10, NULL);  // Start task to handle GPIO events
 }
