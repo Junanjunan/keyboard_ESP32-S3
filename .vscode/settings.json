@@ -11,6 +11,11 @@
         "esp_gap_bt_api.h": "c",
         "esp_hidd_api.h": "c",
         "esp_hidd_prf_api.h": "c",
-        "hid_dev.h": "c"
+        "hid_dev.h": "c",
+        "spi_flash.h": "c",
+        "esp_attr.h": "c",
+        "esp_log.h": "c",
+        "queue.h": "c",
+        "mode_gpio.h": "c"
     }
 }
