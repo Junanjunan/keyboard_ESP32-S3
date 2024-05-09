@@ -5,81 +5,10 @@
 #include "esp_attr.h"
 #include "esp_log.h"
 
-#include "ble_main.h"
-
-#define GPIO_USB_MODE           4
-#define GPIO_BLE_MODE           5
-#define GPIO_WIRELESS_MODE      6
+#include "change_mode_interrupt.h"
 
 
-static QueueHandle_t gpio_evt_queue = NULL;
-
-/**
- * @brief   ISR handler for GPIO events
- * @param   arg: Pointer to the GPIO number that triggered the interrupt, but casted to void* to use in gpio_isr_handler_add(esp_err_t gpio_isr_handler_add(gpio_num_t gpio_num, gpio_isr_t isr_handler, void *args))
- * @return  None
- * @note    This function will send the GPIO number to the queue
- * **/
-static void IRAM_ATTR gpio_isr_handler(void* arg) {
-    uint32_t gpio_num = (uint32_t)arg;
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    xQueueSendFromISR(gpio_evt_queue, &gpio_num, &xHigherPriorityTaskWoken);
-    if (xHigherPriorityTaskWoken == pdTRUE) {
-        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-    }
-}
-
-
-typedef enum {
-    MODE_USB,
-    MODE_BLE,
-    MODE_WIRELESS
-} connection_mode_t;
-
-// Global variable to store the current mode
-connection_mode_t current_mode;
-
-/**
- * @brief   Task to handle GPIO events
- * @param   arg: Pointer to the mode variable, but casted to void* to use in FreeRTOS task
- * @return  None
- * @note    This task will handle GPIO events and change the mode variable accordingly
- * **/
-void gpio_task(void* arg) {
-    connection_mode_t *mode = (connection_mode_t*)arg;
-    uint32_t io_num;
-    while (1) {
-        if (xQueueReceive(gpio_evt_queue, &io_num, portMAX_DELAY)) {
-            switch (io_num) {
-                case GPIO_USB_MODE:
-                    *mode = MODE_USB;
-                    break;
-                case GPIO_BLE_MODE:
-                    *mode = MODE_BLE;
-                    break;
-                case GPIO_WIRELESS_MODE:
-                    *mode = MODE_WIRELESS;
-                    break;
-                default:
-                    ESP_LOGE("GPIO_TASK", "Unhandled GPIO number received");
-                    break;
-            }
-            if (*mode != current_mode) {
-                current_mode = *mode;
-                ESP_LOGI(__func__, "Changed mode is %d", current_mode);
-                if (current_mode == MODE_USB) {
-                    // Do something when USB mode is selected
-                    ESP_LOGI(__func__, "hhh %d", current_mode);
-                } else if (current_mode == MODE_BLE) {
-                    ble_main();
-                } else if (current_mode == MODE_WIRELESS) {
-                    // Do something when Wireless mode is selected
-                    ESP_LOGI(__func__, "hhh %d", current_mode);
-                }
-            }
-        }
-    }
-}
+QueueHandle_t gpio_evt_queue = NULL;
 
 /**
  * @brief   Set up GPIOs for mode selection
