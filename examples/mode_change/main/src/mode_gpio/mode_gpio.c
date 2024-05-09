@@ -5,6 +5,8 @@
 #include "esp_attr.h"
 #include "esp_log.h"
 
+#include "ble_main.h"
+
 #define GPIO_USB_MODE           4
 #define GPIO_BLE_MODE           5
 #define GPIO_WIRELESS_MODE      6
@@ -69,8 +71,7 @@ void gpio_task(void* arg) {
                     // Do something when USB mode is selected
                     ESP_LOGI(__func__, "hhh %d", current_mode);
                 } else if (current_mode == MODE_BLE) {
-                    // Do something when BLE mode is selected
-                    ESP_LOGI(__func__, "hhh %d", current_mode);
+                    ble_main();
                 } else if (current_mode == MODE_WIRELESS) {
                     // Do something when Wireless mode is selected
                     ESP_LOGI(__func__, "hhh %d", current_mode);
