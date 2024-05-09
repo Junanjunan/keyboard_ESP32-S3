@@ -6,4 +6,5 @@ idf_component_register(
             "${SRC_COLLECTION}"
     INCLUDE_DIRS    "."
                     "include"
+                    "include/ble"
 )
