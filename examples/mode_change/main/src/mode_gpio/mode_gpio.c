@@ -65,6 +65,16 @@ void gpio_task(void* arg) {
             if (*mode != current_mode) {
                 current_mode = *mode;
                 ESP_LOGI(__func__, "Changed mode is %d", current_mode);
+                if (current_mode == MODE_USB) {
+                    // Do something when USB mode is selected
+                    ESP_LOGI(__func__, "hhh %d", current_mode);
+                } else if (current_mode == MODE_BLE) {
+                    // Do something when BLE mode is selected
+                    ESP_LOGI(__func__, "hhh %d", current_mode);
+                } else if (current_mode == MODE_WIRELESS) {
+                    // Do something when Wireless mode is selected
+                    ESP_LOGI(__func__, "hhh %d", current_mode);
+                }
             }
         }
     }

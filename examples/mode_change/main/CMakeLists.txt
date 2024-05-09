@@ -1,5 +1,5 @@
 file(GLOB_RECURSE SRC_COLLECTION
-     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c")
+     "${CMAKE_CURRENT_SOURCE_DIR}/src/**/*.c")
 
 idf_component_register(
     SRCS    "main.c"
