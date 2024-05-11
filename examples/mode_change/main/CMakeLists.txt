@@ -11,5 +11,6 @@ idf_component_register(
     INCLUDE_DIRS    "."
                     "include"
                     "include/ble"
+                    "include/tusb"
                     "managed_components/espressif__keyboard_button/include"
 )

@@ -8,6 +8,8 @@
 #include "change_mode_interrupt.h"
 #include "ble_main.h"
 
+#include "tusb_main.h"
+
 
 void IRAM_ATTR gpio_isr_handler(void* arg) {
     uint32_t gpio_num = (uint32_t)arg;
@@ -21,7 +23,6 @@ void IRAM_ATTR gpio_isr_handler(void* arg) {
 
 // Global variable to store the current mode
 connection_mode_t current_mode;
-
 
 void gpio_task(void* arg) {
     connection_mode_t *mode = (connection_mode_t*)arg;
@@ -48,6 +49,7 @@ void gpio_task(void* arg) {
                 if (current_mode == MODE_USB) {
                     // Do something when USB mode is selected
                     ESP_LOGI(__func__, "hhh %d", current_mode);
+                    tusb_main();
                 } else if (current_mode == MODE_BLE) {
                     ble_main();
                 } else if (current_mode == MODE_WIRELESS) {
