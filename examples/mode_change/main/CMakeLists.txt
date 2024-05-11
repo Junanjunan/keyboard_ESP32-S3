@@ -12,5 +12,6 @@ idf_component_register(
                     "include"
                     "include/ble"
                     "include/tusb"
+                    "include/hid"
                     "managed_components/espressif__keyboard_button/include"
 )

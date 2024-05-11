@@ -11,6 +11,7 @@
 #include "tinyusb.h"
 #include "driver/gpio.h"
 #include "esp_hidd_prf_api.h"
+#include "hid.h"
 
 #define APP_BUTTON (GPIO_NUM_0) // Use BOOT signal by default
 static const char *TAG = "example";
@@ -108,4 +109,6 @@ void tusb_main(void)
 
     ESP_ERROR_CHECK(tinyusb_driver_install(&tusb_cfg));
     ESP_LOGI(TAG, "USB initialization DONE");
+
+    keyboard_task();
 }
