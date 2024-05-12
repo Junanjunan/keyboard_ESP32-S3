@@ -16,6 +16,19 @@
         "esp_attr.h": "c",
         "esp_log.h": "c",
         "queue.h": "c",
-        "mode_gpio.h": "c"
+        "mode_gpio.h": "c",
+        "esp_system.h": "c",
+        "tinyusb.h": "c",
+        "tusb.h": "c",
+        "keyboard_button.h": "c",
+        "*.tcc": "c",
+        "functional": "c",
+        "tuple": "c",
+        "type_traits": "c",
+        "cmath": "c",
+        "limits": "c",
+        "new": "c",
+        "array": "c",
+        "utility": "c"
     }
 }
