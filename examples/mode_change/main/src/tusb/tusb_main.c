@@ -16,9 +16,11 @@
 #define APP_BUTTON (GPIO_NUM_0) // Use BOOT signal by default
 static const char *TAG = "example";
 
+
 /************* TinyUSB descriptors ****************/
 
 #define TUSB_DESC_TOTAL_LEN      (TUD_CONFIG_DESC_LEN + CFG_TUD_HID * TUD_HID_DESC_LEN)
+
 
 /**
  * @brief HID report descriptor
@@ -28,6 +30,7 @@ static const char *TAG = "example";
 const uint8_t hid_report_descriptor[] = {
     TUD_HID_REPORT_DESC_KEYBOARD(HID_REPORT_ID(HID_ITF_PROTOCOL_KEYBOARD)),
 };
+
 
 /**
  * @brief String descriptor
@@ -40,6 +43,7 @@ const char* hid_string_descriptor[5] = {
     "123456",              // 3: Serials, should use chip ID
     "Example HID interface",  // 4: HID
 };
+
 
 /**
  * @brief Configuration descriptor
@@ -54,6 +58,7 @@ static const uint8_t hid_configuration_descriptor[] = {
     TUD_HID_DESCRIPTOR(0, 4, false, sizeof(hid_report_descriptor), 0x81, 16, 10),
 };
 
+
 /********* TinyUSB HID callbacks ***************/
 
 // Invoked when received GET HID REPORT DESCRIPTOR request
@@ -63,6 +68,7 @@ uint8_t const *tud_hid_descriptor_report_cb(uint8_t instance)
     // We use only one interface and one HID report descriptor, so we can ignore parameter 'instance'
     return hid_report_descriptor;
 }
+
 
 // Invoked when received GET_REPORT control request
 // Application must fill buffer report's content and return its length.
@@ -78,11 +84,13 @@ uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_t
     return 0;
 }
 
+
 // Invoked when received SET_REPORT control request or
 // received data on OUT endpoint ( Report ID = 0, Type = 0 )
 void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize)
 {
 }
+
 
 /********* Application ***************/
 
@@ -99,6 +107,7 @@ void tusb_main(void)
     ESP_ERROR_CHECK(gpio_config(&boot_button_config));
 
     ESP_LOGI(TAG, "USB initialization");
+
     const tinyusb_config_t tusb_cfg = {
         .device_descriptor = NULL,
         .string_descriptor = hid_string_descriptor,

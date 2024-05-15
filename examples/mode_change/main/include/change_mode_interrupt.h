@@ -24,6 +24,7 @@ typedef enum {
  * **/
 void IRAM_ATTR gpio_isr_handler(void *arg);
 
+
 /**
  * @brief   Task to handle GPIO events
  * @param   arg: Pointer to the mode variable, but casted to void* to use in FreeRTOS task

@@ -24,6 +24,7 @@ void IRAM_ATTR gpio_isr_handler(void* arg) {
 // Global variable to store the current mode
 connection_mode_t current_mode;
 
+
 void gpio_task(void* arg) {
     connection_mode_t *mode = (connection_mode_t*)arg;
     uint32_t io_num;

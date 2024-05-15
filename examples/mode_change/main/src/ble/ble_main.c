@@ -89,6 +89,7 @@ static esp_ble_adv_data_t hidd_adv_data = {
     .flag = 0x6,
 };
 
+
 static esp_ble_adv_params_t hidd_adv_params = {
     .adv_int_min        = 0x20,
     .adv_int_max        = 0x30,
@@ -147,6 +148,7 @@ static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *
     }
     return;
 }
+
 
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
 {

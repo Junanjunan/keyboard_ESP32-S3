@@ -11,16 +11,11 @@
 /// characteristic presentation information
 struct prf_char_pres_fmt
 {
-    /// Unit (The Unit is a UUID)
-    uint16_t unit;
-    /// Description
-    uint16_t description;
-    /// Format
-    uint8_t format;
-    /// Exponent
-    uint8_t exponent;
-    /// Name space
-    uint8_t name_space;
+    uint16_t unit;          /// Unit (The Unit is a UUID)
+    uint16_t description;   /// Description
+    uint8_t format;         /// Format
+    uint8_t exponent;       /// Exponent
+    uint8_t name_space;     /// Name space
 };
 
 // HID report mapping table
