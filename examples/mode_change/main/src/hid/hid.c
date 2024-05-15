@@ -2,6 +2,7 @@
 #include "esp_log.h"
 #include "hid_dev.h"
 #include "keyboard_button.h"
+#include "tinyusb.h"
 
 
 static uint16_t hid_conn_id = 0;
@@ -33,17 +34,23 @@ uint8_t keycodes[2][2] = {
 void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_report, void *user_data)
 {
     uint8_t keycode = 0;
+    uint8_t key[6] = {keycode};
     if (kbd_report.key_pressed_num == 0)
     {
         ESP_LOGI(__func__, "All keys released\n\n");
-        esp_hidd_send_keyboard_value(hid_conn_id, 0, &keycode, 1);
+        // esp_hidd_send_keyboard_value(hid_conn_id, 0, &keycode, 1);
+        if (tud_mounted()) {
+            tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, 0, key);
+        }
         return;
     }
     printf("pressed: ");
     for (int i = 0; i < kbd_report.key_pressed_num; i++) {
         printf("(%d,%d) ", kbd_report.key_data[i].output_index, kbd_report.key_data[i].input_index);
         keycode = keycodes[kbd_report.key_data[i].output_index][kbd_report.key_data[i].input_index];
-        esp_hidd_send_keyboard_value(hid_conn_id, 0, &keycode, 1);
+        // esp_hidd_send_keyboard_value(hid_conn_id, 0, &keycode, 1);
+        uint8_t key[6] = {keycode};
+        tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, 0, key);
     }
     printf("\n\n");
 }
