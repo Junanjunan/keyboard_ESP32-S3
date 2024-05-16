@@ -16,6 +16,9 @@ typedef enum {
 } connection_mode_t;
 
 
+extern connection_mode_t current_mode;
+
+
 /**
  * @brief   ISR handler for GPIO events
  * @param   arg: Pointer to the GPIO number that triggered the interrupt, but casted to void* to use in gpio_isr_handler_add(esp_err_t gpio_isr_handler_add(gpio_num_t gpio_num, gpio_isr_t isr_handler, void *args))

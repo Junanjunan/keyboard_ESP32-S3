@@ -3,6 +3,7 @@
 #include "hid_dev.h"
 #include "keyboard_button.h"
 #include "tinyusb.h"
+#include "change_mode_interrupt.h"
 
 
 static uint16_t hid_conn_id = 0;
@@ -36,18 +37,28 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
     uint8_t keycode = 0;
     uint8_t key[6] = {keycode};
     if (kbd_report.key_pressed_num == 0) {
-        // esp_hidd_send_keyboard_value(hid_conn_id, 0, &keycode, 1);
-        if (tud_mounted()) {
+        if (current_mode == MODE_USB)
+        {
             tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, 0, key);
+        }
+        else if (current_mode == MODE_BLE)
+        {
+            esp_hidd_send_keyboard_value(hid_conn_id, 0, &keycode, 1);
         }
         return;
     }
 
     for (int i = 0; i < kbd_report.key_pressed_num; i++) {
         keycode = keycodes[kbd_report.key_data[i].output_index][kbd_report.key_data[i].input_index];
-        // esp_hidd_send_keyboard_value(hid_conn_id, 0, &keycode, 1);
         uint8_t key[6] = {keycode};
-        tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, 0, key);
+        if (current_mode == MODE_USB)
+        {
+            tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, 0, key);
+        }
+        else if (current_mode == MODE_BLE)
+        {
+            esp_hidd_send_keyboard_value(hid_conn_id, 0, &keycode, 1);
+        }
     }
 }
 
