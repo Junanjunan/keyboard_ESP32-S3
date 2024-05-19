@@ -8,4 +8,5 @@ idf_component_register(
                     "include"
                     "include/ble"
                     "include/hid"
+                    "include/esp_now"
 )

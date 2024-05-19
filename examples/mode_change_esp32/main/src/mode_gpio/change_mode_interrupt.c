@@ -7,6 +7,7 @@
 
 #include "change_mode_interrupt.h"
 #include "ble_main.h"
+#include "esp_now_main.h"
 
 
 
@@ -54,6 +55,7 @@ void gpio_task(void* arg) {
                 } else if (current_mode == MODE_WIRELESS) {
                     // Do something when Wireless mode is selected
                     ESP_LOGI(__func__, "hhh %d", current_mode);
+                    esp_now_main();
                 }
             }
         }
