@@ -10,14 +10,14 @@ static uint16_t hid_conn_id = 0;
 keyboard_btn_config_t cfg = {
     .output_gpios = (int[])
     {
-        40, 39, 38, 45, 48, 47
+        18, 19
     },
-    .output_gpio_num = 6,
+    .output_gpio_num = 2,
     .input_gpios = (int[])
     {
-        21, 14, 13, 12, 11, 10, 9, 7, 15, 16, 17, 18
+        32, 33
     },
-    .input_gpio_num = 15,
+    .input_gpio_num = 2,
     .active_level = 1,
     .debounce_ticks = 2,
     .ticks_interval = 500,      // us

@@ -2,8 +2,8 @@
 #include "esp_attr.h"
 
 #define GPIO_USB_MODE           4
-#define GPIO_BLE_MODE           5
-#define GPIO_WIRELESS_MODE      6
+#define GPIO_BLE_MODE           16
+#define GPIO_WIRELESS_MODE      17
 
 
 extern QueueHandle_t gpio_evt_queue;
