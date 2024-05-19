@@ -9,4 +9,5 @@ idf_component_register(
                     "include/ble"
                     "include/tusb"
                     "include/hid"
+                    "include/esp_now"
 )
