@@ -2232,7 +2232,7 @@ CONFIG_TINYUSB_MIDI_COUNT=0
 #
 # Human Interface Device Class (HID)
 #
-CONFIG_TINYUSB_HID_COUNT=0
+CONFIG_TINYUSB_HID_COUNT=1
 # end of Human Interface Device Class (HID)
 
 #
@@ -2257,6 +2257,17 @@ CONFIG_TINYUSB_DFU_MODE_NONE=y
 CONFIG_TINYUSB_NET_MODE_NONE=y
 # end of Network driver (ECM/NCM/RNDIS)
 # end of TinyUSB Stack
+
+#
+# CMake Utilities
+#
+# CONFIG_CU_RELINKER_ENABLE is not set
+# CONFIG_CU_DIAGNOSTICS_COLOR_NEVER is not set
+CONFIG_CU_DIAGNOSTICS_COLOR_ALWAYS=y
+# CONFIG_CU_DIAGNOSTICS_COLOR_AUTO is not set
+# CONFIG_CU_GCC_LTO_ENABLE is not set
+# CONFIG_CU_GCC_STRING_1BYTE_ALIGN is not set
+# end of CMake Utilities
 # end of Component config
 
 # CONFIG_IDF_EXPERIMENTAL_FEATURES is not set
