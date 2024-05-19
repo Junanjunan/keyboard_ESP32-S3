@@ -1,0 +1,1 @@
+void tusb_main(void);
