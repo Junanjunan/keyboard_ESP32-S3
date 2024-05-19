@@ -8,7 +8,6 @@
 #include "change_mode_interrupt.h"
 #include "ble_main.h"
 
-#include "tusb_main.h"
 
 
 void IRAM_ATTR gpio_isr_handler(void* arg) {
@@ -50,7 +49,6 @@ void gpio_task(void* arg) {
                 if (current_mode == MODE_USB) {
                     // Do something when USB mode is selected
                     ESP_LOGI(__func__, "hhh %d", current_mode);
-                    tusb_main();
                 } else if (current_mode == MODE_BLE) {
                     ble_main();
                 } else if (current_mode == MODE_WIRELESS) {

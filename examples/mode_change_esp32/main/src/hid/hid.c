@@ -2,7 +2,6 @@
 #include "esp_log.h"
 #include "hid_dev.h"
 #include "keyboard_button.h"
-#include "tinyusb.h"
 #include "change_mode_interrupt.h"
 
 
@@ -39,7 +38,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
     if (kbd_report.key_pressed_num == 0) {
         if (current_mode == MODE_USB)
         {
-            tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, 0, key);
+            ESP_LOGI(__func__, "Removed TUD in ESP32");
         }
         else if (current_mode == MODE_BLE)
         {
@@ -53,7 +52,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         uint8_t key[6] = {keycode};
         if (current_mode == MODE_USB)
         {
-            tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, 0, key);
+            ESP_LOGI(__func__, "Removed TUD in ESP32");
         }
         else if (current_mode == MODE_BLE)
         {
