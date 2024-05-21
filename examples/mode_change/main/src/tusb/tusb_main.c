@@ -11,6 +11,7 @@
 #include "tinyusb.h"
 #include "driver/gpio.h"
 #include "hid.h"
+#include "esp_now_main.h"
 
 #define APP_BUTTON (GPIO_NUM_0) // Use BOOT signal by default
 static const char *TAG = "example";
@@ -122,7 +123,8 @@ void tusb_main(void)
     while (out == false) {
         if (tud_mounted()) {
             ESP_LOGI(__func__, "USB mounted and start keyboard task");
-            keyboard_task();
+            // keyboard_task();
+            esp_now_main();
             out = true;
         }
     }
