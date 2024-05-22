@@ -67,6 +67,7 @@ static uint8_t hidd_service_uuid128[] = {
 
 #define TUSB_DESC_TOTAL_LEN      (TUD_CONFIG_DESC_LEN + CFG_TUD_HID * TUD_HID_DESC_LEN)
 
+
 /*
  * Supplement to the Bluetooth Core Specification
  * Source: https://www.bluetooth.com/specifications/specs/core-specification-supplement-9/

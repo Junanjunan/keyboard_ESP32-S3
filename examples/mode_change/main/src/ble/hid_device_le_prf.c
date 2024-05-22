@@ -8,6 +8,7 @@
 #include <string.h>
 #include "esp_log.h"
 
+
 /// characteristic presentation information
 struct prf_char_pres_fmt
 {
@@ -18,8 +19,10 @@ struct prf_char_pres_fmt
     uint8_t name_space;     /// Name space
 };
 
+
 // HID report mapping table
 static hid_report_map_t hid_rpt_map[HID_NUM_REPORTS];
+
 
 // HID Report Map characteristic value
 // Keyboard report descriptor (using format for Boot interface descriptor)
@@ -172,6 +175,7 @@ static const uint8_t hidReportMap[] = {
 
 };
 
+
 /// Battery Service Attributes Indexes
 enum
 {
@@ -185,10 +189,12 @@ enum
     BAS_IDX_NB,
 };
 
+
 #define HI_UINT16(a) (((a) >> 8) & 0xFF)
 #define LO_UINT16(a) ((a) & 0xFF)
 #define PROFILE_NUM            1
 #define PROFILE_APP_IDX        0
+
 
 struct gatts_profile_inst {
     esp_gatts_cb_t gatts_cb;
@@ -196,6 +202,7 @@ struct gatts_profile_inst {
     uint16_t app_id;
     uint16_t conn_id;
 };
+
 
 hidd_le_env_t hidd_le_env;
 
@@ -205,6 +212,7 @@ uint8_t hidProtocolMode = HID_PROTOCOL_MODE_REPORT;
 
 // HID report mapping table
 //static hidRptMap_t  hidRptMap[HID_NUM_REPORTS];
+
 
 // HID Information characteristic value
 static const uint8_t hidInfo[HID_INFORMATION_LEN] = {
@@ -217,6 +225,7 @@ static const uint8_t hidInfo[HID_INFORMATION_LEN] = {
 // HID External Report Reference Descriptor
 static uint16_t hidExtReportRefDesc = ESP_GATT_UUID_BATTERY_LEVEL;
 
+
 // HID Report Reference characteristic descriptor, mouse input
 static uint8_t hidReportRefMouseIn[HID_REPORT_REF_LEN] =
              { HID_RPT_ID_MOUSE_IN, HID_REPORT_TYPE_INPUT_KEYBOARD };
@@ -226,9 +235,11 @@ static uint8_t hidReportRefMouseIn[HID_REPORT_REF_LEN] =
 static uint8_t hidReportRefKeyIn[HID_REPORT_REF_LEN] =
              { HID_RPT_ID_KEY_IN, HID_REPORT_TYPE_INPUT_KEYBOARD };
 
+
 // HID Report Reference characteristic descriptor, LED output
 static uint8_t hidReportRefLedOut[HID_REPORT_REF_LEN] =
              { HID_RPT_ID_LED_OUT, HID_REPORT_TYPE_OUTPUT_KEYBOARD };
+
 
 #if (SUPPORT_REPORT_VENDOR  == true)
 
@@ -236,9 +247,11 @@ static uint8_t hidReportRefVendorOut[HID_REPORT_REF_LEN] =
              {HID_RPT_ID_VENDOR_OUT, HID_REPORT_TYPE_OUTPUT_KEYBOARD};
 #endif
 
+
 // HID Report Reference characteristic descriptor, Feature
 static uint8_t hidReportRefFeature[HID_REPORT_REF_LEN] =
              { HID_RPT_ID_FEATURE, HID_REPORT_TYPE_FEATURE_KEYBOARD };
+
 
 // HID Report Reference characteristic descriptor, consumer control input
 static uint8_t hidReportRefCCIn[HID_REPORT_REF_LEN] =
@@ -256,6 +269,7 @@ uint16_t            hid_count = 0;
 esp_gatts_incl_svc_desc_t incl_svc = {0};
 
 #define CHAR_DECLARATION_SIZE   (sizeof(uint8_t))
+
 ///the uuid definition
 static const uint16_t primary_service_uuid = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t include_service_uuid = ESP_GATT_UUID_INCLUDE_SERVICE;
@@ -288,6 +302,8 @@ static const uint8_t   bat_lev_ccc[2] ={ 0x00, 0x00};
 static const uint16_t char_format_uuid = ESP_GATT_UUID_CHAR_PRESENT_FORMAT;
 
 static uint8_t battary_lev = 50;
+
+
 /// Full HRS Database Description - Used to add attributes into the database
 static const esp_gatts_attr_db_t bas_att_db[BAS_IDX_NB] =
 {
@@ -527,7 +543,9 @@ static esp_gatts_attr_db_t hidd_le_gatt_db[HIDD_LE_IDX_NB] =
                                                                        hidReportRefFeature}},
 };
 
+
 static void hid_add_id_tbl(void);
+
 
 void esp_hidd_prf_cb_hdl(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if,
 									esp_ble_gatts_cb_param_t *param)
@@ -629,6 +647,7 @@ void esp_hidd_prf_cb_hdl(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if,
     }
 }
 
+
 void hidd_le_create_service(esp_gatt_if_t gatts_if)
 {
     /* Here should added the battery service first, because the hid service should include the battery service.
@@ -637,12 +656,14 @@ void hidd_le_create_service(esp_gatt_if_t gatts_if)
 
 }
 
+
 void hidd_le_init(void)
 {
 
     // Reset the hid device target environment
     memset(&hidd_le_env, 0, sizeof(hidd_le_env_t));
 }
+
 
 void hidd_clcb_alloc (uint16_t conn_id, esp_bd_addr_t bda)
 {
@@ -661,6 +682,7 @@ void hidd_clcb_alloc (uint16_t conn_id, esp_bd_addr_t bda)
     return;
 }
 
+
 bool hidd_clcb_dealloc (uint16_t conn_id)
 {
     uint8_t              i_clcb = 0;
@@ -674,6 +696,7 @@ bool hidd_clcb_dealloc (uint16_t conn_id)
     return false;
 }
 
+
 static struct gatts_profile_inst heart_rate_profile_tab[PROFILE_NUM] = {
     [PROFILE_APP_IDX] = {
         .gatts_cb = esp_hidd_prf_cb_hdl,
@@ -681,6 +704,7 @@ static struct gatts_profile_inst heart_rate_profile_tab[PROFILE_NUM] = {
     },
 
 };
+
 
 static void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if,
                                 esp_ble_gatts_cb_param_t *param)
@@ -718,6 +742,7 @@ esp_err_t hidd_register_cb(void)
 	return status;
 }
 
+
 void hidd_set_attr_value(uint16_t handle, uint16_t val_len, const uint8_t *value)
 {
     hidd_inst_t *hidd_inst = &hidd_le_env.hidd_inst;
@@ -729,6 +754,7 @@ void hidd_set_attr_value(uint16_t handle, uint16_t val_len, const uint8_t *value
     }
     return;
 }
+
 
 void hidd_get_attr_value(uint16_t handle, uint16_t *length, uint8_t **value)
 {
@@ -742,6 +768,7 @@ void hidd_get_attr_value(uint16_t handle, uint16_t *length, uint8_t **value)
 
     return;
 }
+
 
 static void hid_add_id_tbl(void)
 {

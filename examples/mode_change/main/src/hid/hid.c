@@ -8,6 +8,7 @@
 
 static uint16_t hid_conn_id = 0;
 
+
 keyboard_btn_config_t cfg = {
     .output_gpios = (int[])
     {
@@ -25,12 +26,15 @@ keyboard_btn_config_t cfg = {
     .enable_power_save = false, // enable power save
 };
 
+
 keyboard_btn_handle_t kbd_handle = NULL;
+
 
 uint8_t keycodes[2][2] = {
     {HID_KEY_A, HID_KEY_B},  // HID keycodes for 'a', 'b'
     {HID_KEY_C, HID_KEY_D}   // HID keycodes for 'c', 'd'
 };
+
 
 void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_report, void *user_data)
 {
@@ -62,10 +66,12 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
     }
 }
 
+
 keyboard_btn_cb_config_t cb_cfg = {
     .event = KBD_EVENT_PRESSED,
     .callback = keyboard_cb,
 };
+
 
 void keyboard_task(void) {
     keyboard_button_create(&cfg, &kbd_handle);

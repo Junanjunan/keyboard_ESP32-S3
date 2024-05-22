@@ -10,6 +10,7 @@
 
 QueueHandle_t gpio_evt_queue = NULL;
 
+
 /**
  * @brief   Set up GPIOs for mode selection
  * @param   mode: Pointer to the mode variable

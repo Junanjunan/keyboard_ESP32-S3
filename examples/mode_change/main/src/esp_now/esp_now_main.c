@@ -18,6 +18,7 @@
 
 static const char * TAG = "esp_now_init";
 
+
 static esp_err_t init_wifi(void)
 {
     wifi_init_config_t wifi_init_config =  WIFI_INIT_CONFIG_DEFAULT();
@@ -32,24 +33,28 @@ static esp_err_t init_wifi(void)
     return ESP_OK;
 }
 
+
 void send_key_released_report(void) {
     uint8_t key_report[6] = {0};
     tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, 0, key_report);
 }
 
+
 void recv_cb(const esp_now_recv_info_t * esp_now_info, const uint8_t *data, int data_len)
 {
-    ESP_LOGI(TAG, "Data received: " MACSTR "%s", MAC2STR(esp_now_info->src_addr), data);
-    ESP_LOGI(TAG, "Data is %s", data);
     uint8_t key[6] = {0};
     uint8_t converted_key = atoi((const char *)data);
     key[0] = converted_key;
+
     tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, 0, key);
+    ESP_LOGI(__func__, "Key pressed report sent");
 
     vTaskDelay(pdMS_TO_TICKS(20));
 
     send_key_released_report();
+    ESP_LOGI(__func__, "Key released report sent");
 }
+
 
 static esp_err_t init_esp_now(void)
 {
@@ -58,6 +63,7 @@ static esp_err_t init_esp_now(void)
     ESP_LOGI(TAG, "esp now init completed");
     return ESP_OK;
 }
+
 
 void esp_now_main(void)
 {

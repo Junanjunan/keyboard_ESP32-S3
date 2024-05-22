@@ -23,6 +23,7 @@
 // HID consumer control input report length
 #define HID_CC_IN_RPT_LEN           2
 
+
 esp_err_t esp_hidd_register_callbacks(esp_hidd_event_cb_t callbacks)
 {
     esp_err_t hidd_status;
@@ -46,6 +47,7 @@ esp_err_t esp_hidd_register_callbacks(esp_hidd_event_cb_t callbacks)
     return hidd_status;
 }
 
+
 esp_err_t esp_hidd_profile_init(void)
 {
      if (hidd_le_env.enabled) {
@@ -57,6 +59,7 @@ esp_err_t esp_hidd_profile_init(void)
     hidd_le_env.enabled = true;
     return ESP_OK;
 }
+
 
 esp_err_t esp_hidd_profile_deinit(void)
 {
@@ -79,10 +82,12 @@ esp_err_t esp_hidd_profile_deinit(void)
     return ESP_OK;
 }
 
+
 uint16_t esp_hidd_get_version(void)
 {
 	return HIDD_VERSION;
 }
+
 
 void esp_hidd_send_consumer_value(uint16_t conn_id, uint8_t key_cmd, bool key_pressed)
 {
@@ -96,6 +101,7 @@ void esp_hidd_send_consumer_value(uint16_t conn_id, uint8_t key_cmd, bool key_pr
                         HID_RPT_ID_CC_IN, HID_REPORT_TYPE_INPUT_KEYBOARD, HID_CC_IN_RPT_LEN, buffer);
     return;
 }
+
 
 void esp_hidd_send_keyboard_value(uint16_t conn_id, key_mask_t special_key_mask, uint8_t *keyboard_cmd, uint8_t num_key)
 {
@@ -117,6 +123,7 @@ void esp_hidd_send_keyboard_value(uint16_t conn_id, key_mask_t special_key_mask,
                         HID_RPT_ID_KEY_IN, HID_REPORT_TYPE_INPUT_KEYBOARD, HID_KEYBOARD_IN_RPT_LEN, buffer);
     return;
 }
+
 
 void esp_hidd_send_mouse_value(uint16_t conn_id, uint8_t mouse_button, int8_t mickeys_x, int8_t mickeys_y)
 {
