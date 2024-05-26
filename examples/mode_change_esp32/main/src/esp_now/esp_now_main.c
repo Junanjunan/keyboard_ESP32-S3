@@ -9,10 +9,9 @@
 #include "esp_event.h"
 #include "nvs_flash.h"
 #include "esp_log.h"
+#include "hid.h"
 
 #define ESP_CHANNEL         1
-#define LED_STRIP           8
-#define LED_STRIP_MAX_LEDS  1
 
 
 static uint8_t peer_mac [ESP_NOW_ETH_ALEN] = {0x24, 0x58, 0x7C, 0xCD, 0x93, 0x30};
@@ -36,12 +35,6 @@ static esp_err_t init_wifi(void)
 }
 
 
-void recv_cb(const esp_now_recv_info_t * esp_now_info, const uint8_t *data, int data_len)
-{
-    ESP_LOGI(TAG, "Data received: " MACSTR "%s", MAC2STR(esp_now_info->src_addr), data);
-}
-
-
 void send_cb(const uint8_t *mac_addr, esp_now_send_status_t status)
 {
     if(status == ESP_NOW_SEND_SUCCESS)
@@ -58,7 +51,6 @@ void send_cb(const uint8_t *mac_addr, esp_now_send_status_t status)
 static esp_err_t init_esp_now(void)
 {
     esp_now_init();
-    esp_now_register_recv_cb(recv_cb);
     esp_now_register_send_cb(send_cb);
 
     ESP_LOGI(TAG, "esp now init completed");
@@ -77,26 +69,11 @@ static esp_err_t register_peer(uint8_t *peer_addr)
 }
 
 
-static esp_err_t esp_now_send_data(const uint8_t *peer_addr, const uint8_t *data, size_t len)
-{
-    esp_now_send(peer_addr, data, len);
-    return ESP_OK;
-}
-
-
 void esp_now_main(void)
 {
     ESP_ERROR_CHECK(init_wifi());
     ESP_ERROR_CHECK(init_esp_now());
     ESP_ERROR_CHECK(register_peer(peer_mac));
 
-    uint8_t dataR [] = "255|0|0";
-    uint8_t count = 0;
-
-    while (1)
-    {
-        esp_now_send_data(peer_mac, dataR, 32);
-
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
+    keyboard_task();
 }
