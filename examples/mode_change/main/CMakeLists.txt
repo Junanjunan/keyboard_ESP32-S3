@@ -7,6 +7,7 @@ idf_component_register(
     INCLUDE_DIRS    "."
                     "include"
                     "include/ble"
+                    "include/ble50"
                     "include/tusb"
                     "include/hid"
                     "include/esp_now"
