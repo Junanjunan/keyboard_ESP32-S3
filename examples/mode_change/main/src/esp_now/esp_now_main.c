@@ -47,12 +47,6 @@ void recv_cb(const esp_now_recv_info_t * esp_now_info, const uint8_t *data, int 
     key[0] = converted_key;
 
     tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, 0, key);
-    ESP_LOGI(__func__, "Key pressed report sent");
-
-    vTaskDelay(pdMS_TO_TICKS(20));
-
-    send_key_released_report();
-    ESP_LOGI(__func__, "Key released report sent");
 }
 
 
