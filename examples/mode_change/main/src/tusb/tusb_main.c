@@ -123,8 +123,7 @@ void tusb_main(void)
     while (out == false) {
         if (tud_mounted()) {
             ESP_LOGI(__func__, "USB mounted and start keyboard task");
-            // keyboard_task();
-            esp_now_main();
+            keyboard_task();
             out = true;
         }
     }

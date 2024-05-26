@@ -18,6 +18,5 @@ void app_main() {
       ret = nvs_flash_init();
     }
 
-    // setup_mode_gpio(mode);
-    tusb_main();
+    setup_mode_gpio(mode);
 }
