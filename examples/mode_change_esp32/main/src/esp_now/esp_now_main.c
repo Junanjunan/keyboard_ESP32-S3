@@ -48,10 +48,21 @@ void send_cb(const uint8_t *mac_addr, esp_now_send_status_t status)
 }
 
 
+void recv_cb(const esp_now_recv_info_t * esp_now_info, const uint8_t *data, int data_len)
+{
+    uint8_t key[6] = {0};
+    uint8_t converted_key = atoi((const char *)data);
+    key[0] = converted_key;
+
+    ESP_LOGI(__func__, "Received key: %d", converted_key);
+}
+
+
 static esp_err_t init_esp_now(void)
 {
     esp_now_init();
     esp_now_register_send_cb(send_cb);
+    esp_now_register_recv_cb(recv_cb);
 
     ESP_LOGI(TAG, "esp now init completed");
     return ESP_OK;
@@ -74,6 +85,4 @@ void esp_now_main(void)
     ESP_ERROR_CHECK(init_wifi());
     ESP_ERROR_CHECK(init_esp_now());
     ESP_ERROR_CHECK(register_peer(peer_mac));
-
-    keyboard_task();
 }
