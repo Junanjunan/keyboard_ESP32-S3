@@ -5,6 +5,7 @@
 #include "freertos/task.h"
 
 #include "mode_gpio.h"
+#include "tusb_main.h"
 
 
 void app_main() {
@@ -17,5 +18,6 @@ void app_main() {
       ret = nvs_flash_init();
     }
 
-    setup_mode_gpio(mode);
+    // setup_mode_gpio(mode);
+    tusb_main();
 }
