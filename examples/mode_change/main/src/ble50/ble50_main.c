@@ -36,13 +36,18 @@ static uint16_t profile_handle_table[HRS_IDX_NB];
 
 static uint8_t ext_adv_raw_data[] = {
         0x02, 0x01, 0x06,
-        0x02, 0x0a, 0xeb, 0x03, 0x03, 0xab, 0xcd,
+        0x02, 0x0a, 0xeb,
+        0x03, 0x03, 0x12, 0x18,
         0x11, 0X09, 'E', 'S', 'P', '_', 'B', 'L', 'E', '5', '0', '_', 'S', 'E', 'R', 'V', 'E', 'R',
 };
 
 static esp_ble_gap_ext_adv_t ext_adv[1] = {
     [0] = {EXT_ADV_HANDLE, EXT_ADV_DURATION, EXT_ADV_MAX_EVENTS},
 };
+
+// esp_ble_gap_ext_adv_reprot_t
+// esp_ble_gap_config_local_icon
+// esp_ble_gap_set_device_name
 
 esp_ble_gap_ext_adv_params_t ext_adv_params_2M = {
     .type = ESP_BLE_GAP_SET_EXT_ADV_PROP_CONNECTABLE,
