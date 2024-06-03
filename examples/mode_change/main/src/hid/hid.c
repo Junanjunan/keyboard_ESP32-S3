@@ -14,14 +14,14 @@ static uint16_t hid_conn_id = 0;
 keyboard_btn_config_t cfg = {
     .output_gpios = (int[])
     {
-        40, 39, 38, 45, 48, 47
+        37, 38, 39, 40, 41, 42
     },
     .output_gpio_num = 6,
     .input_gpios = (int[])
     {
-        21, 14, 13, 12, 11, 10, 9, 7, 15, 16, 17, 18
+        7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 47, 48, 45, 35
     },
-    .input_gpio_num = 15,
+    .input_gpio_num = 18,
     .active_level = 1,
     .debounce_ticks = 2,
     .ticks_interval = 500,      // us
@@ -32,11 +32,20 @@ keyboard_btn_config_t cfg = {
 keyboard_btn_handle_t kbd_handle = NULL;
 
 
-uint8_t keycodes[2][2] = {
-    {HID_KEY_A, HID_KEY_B},  // HID keycodes for 'a', 'b'
-    {HID_KEY_C, HID_KEY_D}   // HID keycodes for 'c', 'd'
-};
+// uint8_t keycodes[2][2] = {
+//     {HID_KEY_A, HID_KEY_B},  // HID keycodes for 'a', 'b'
+//     {HID_KEY_C, HID_KEY_D}   // HID keycodes for 'c', 'd'
+// };
 
+// keycodes for the keyboard 6*18
+uint8_t keycodes[6][18] = {
+    {HID_KEY_A, HID_KEY_B, HID_KEY_C, HID_KEY_D, HID_KEY_E, HID_KEY_F, HID_KEY_G, HID_KEY_H, HID_KEY_I, HID_KEY_J, HID_KEY_K, HID_KEY_L, HID_KEY_M, HID_KEY_N, HID_KEY_O, HID_KEY_P, HID_KEY_Q, HID_KEY_R},
+    {HID_KEY_S, HID_KEY_T, HID_KEY_U, HID_KEY_V, HID_KEY_W, HID_KEY_X, HID_KEY_Y, HID_KEY_Z, HID_KEY_1, HID_KEY_2, HID_KEY_3, HID_KEY_4, HID_KEY_5, HID_KEY_6, HID_KEY_7, HID_KEY_8, HID_KEY_9, HID_KEY_0},
+    {HID_KEY_ENTER, HID_KEY_ESCAPE, HID_KEY_BACKSPACE, HID_KEY_TAB, HID_KEY_SPACE, HID_KEY_MINUS, HID_KEY_EQUAL, HID_KEY_BRACKET_LEFT, HID_KEY_BRACKET_RIGHT, HID_KEY_BACKSLASH, HID_KEY_SEMICOLON, HID_KEY_EUROPE_1, HID_KEY_GRAVE, HID_KEY_COMMA, HID_KEY_DOT, HID_KEY_SLASH, HID_KEY_CAPS_LOCK, HID_KEY_F1},
+    {HID_KEY_F2, HID_KEY_F3, HID_KEY_F4, HID_KEY_F5, HID_KEY_F6, HID_KEY_F7, HID_KEY_F8, HID_KEY_F9, HID_KEY_F10, HID_KEY_F11, HID_KEY_F12, HID_KEY_PRINT_SCREEN, HID_KEY_SCROLL_LOCK, HID_KEY_PAUSE, HID_KEY_INSERT, HID_KEY_HOME, HID_KEY_PAGE_UP, HID_KEY_DELETE},
+    {HID_KEY_END, HID_KEY_PAGE_DOWN, HID_KEY_ARROW_RIGHT, HID_KEY_ARROW_LEFT, HID_KEY_ARROW_DOWN, HID_KEY_ARROW_UP, HID_KEY_NUM_LOCK, HID_KEY_KEYPAD_DIVIDE, HID_KEY_KEYPAD_MULTIPLY, HID_KEY_KEYPAD_SUBTRACT, HID_KEY_KEYPAD_ADD, HID_KEY_KEYPAD_ENTER, HID_KEY_KEYPAD_1, HID_KEY_KEYPAD_2, HID_KEY_KEYPAD_3, HID_KEY_KEYPAD_4, HID_KEY_KEYPAD_5, HID_KEY_KEYPAD_6},
+    {HID_KEY_KEYPAD_7, HID_KEY_KEYPAD_8, HID_KEY_KEYPAD_9, HID_KEY_KEYPAD_0, HID_KEY_APOSTROPHE, HID_KEY_EUROPE_2, HID_KEY_PERIOD, HID_KEY_POWER, HID_KEY_KEYPAD_EQUAL, HID_KEY_F13, HID_KEY_F14, HID_KEY_F15, HID_KEY_F16, HID_KEY_F17, HID_KEY_F18, HID_KEY_F19, HID_KEY_F20, HID_KEY_F21}
+};
 
 void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_report, void *user_data)
 {
