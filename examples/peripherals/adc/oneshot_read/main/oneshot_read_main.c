@@ -33,7 +33,7 @@ const static char *TAG = "EXAMPLE";
  * On ESP32C3, ADC2 is no longer supported, due to its HW limitation.
  * Search for errata on espressif website for more details.
  */
-#define EXAMPLE_USE_ADC2            1
+#define EXAMPLE_USE_ADC2            0
 #endif
 
 #if EXAMPLE_USE_ADC2
