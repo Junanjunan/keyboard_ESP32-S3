@@ -30,6 +30,7 @@ keyboard_btn_config_t cfg = {
 
 
 keyboard_btn_handle_t kbd_handle = NULL;
+keyboard_btn_handle_t kbd_handle_combi = NULL;
 
 
 // uint8_t keycodes[2][2] = {
@@ -171,14 +172,15 @@ keyboard_btn_cb_config_t cb_cfg_combi = {
     .callback = keyboard_combination_cb1,
     .event_data.combination.key_num = 2,
     .event_data.combination.key_data = (keyboard_btn_data_t[]) {
-        {5, 1},
-        {1, 1},
+        {4, 1},
+        {4, 2},
     },
 };
 
 
 void keyboard_task(void) {
     keyboard_button_create(&cfg, &kbd_handle);
+    keyboard_button_create(&cfg, &kbd_handle_combi);
     keyboard_button_register_cb(kbd_handle, cb_cfg, NULL);
-    keyboard_button_register_cb(kbd_handle, cb_cfg_combi, NULL);
+    keyboard_button_register_cb(kbd_handle_combi, cb_cfg_combi, NULL);
 }
