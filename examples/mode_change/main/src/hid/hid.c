@@ -47,6 +47,40 @@ uint8_t keycodes[6][18] = {
     {HID_KEY_KEYPAD_6,  HID_KEY_KEYPAD_7,   HID_KEY_KEYPAD_8,       HID_KEY_KEYPAD_9,       HID_KEY_KEYPAD_0,       HID_KEY_KEYPAD_DECIMAL,     HID_KEY_EUROPE_2,   HID_KEY_APPLICATION,    HID_KEY_POWER,              HID_KEY_KEYPAD_EQUAL,       HID_KEY_F13,                HID_KEY_F14,            HID_KEY_F15,            HID_KEY_F16,            HID_KEY_F17,        HID_KEY_F18,        HID_KEY_F19,        HID_KEY_F20,}
 };
 
+
+void decimalToHexadecimal(int num, char *hexStr) {
+    int i = 0;
+    int temp;
+    // Process the number until it becomes 0
+    while (num != 0) {
+        temp = num % 16;  // Get the remainder
+        
+        // Convert numerical value to hexadecimal value
+        if (temp < 10) {
+            hexStr[i++] = temp + '0';
+        } else {
+            hexStr[i++] = temp - 10 + 'A';
+        }
+
+        num = num / 16;  // Reduce the number
+    }
+
+    hexStr[i] = '\0';  // Null terminate the string
+
+    // Reverse the string since the digits are in reverse order
+    int start = 0;
+    int end = i - 1;
+    char tmp;
+    while (start < end) {
+        tmp = hexStr[start];
+        hexStr[start] = hexStr[end];
+        hexStr[end] = tmp;
+        start++;
+        end--;
+    }
+}
+
+
 void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_report, void *user_data)
 {
     uint8_t keycode = 0;
@@ -71,6 +105,10 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
     for (int i = 0; i < kbd_report.key_pressed_num; i++) {
         keycode = keycodes[kbd_report.key_data[i].output_index][kbd_report.key_data[i].input_index];
         uint8_t key[6] = {keycode};
+
+        char hexStr[20];  // Allocate enough space for the largest possible hex number
+        decimalToHexadecimal(keycode, hexStr);
+        printf("Decimal: %d is Hexadecimal: %s\n", keycode, hexStr);
 
         // Convert keycode to uint8_t array for esp_now_send
         char temp [6];
