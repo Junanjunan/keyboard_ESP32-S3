@@ -106,6 +106,8 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
     uint8_t keycode = 0;
     uint8_t key[6] = {keycode};
     uint8_t espnow_release_key [] = "0";
+    uint8_t special_keys = KEYBOARD_MODIFIER_LEFTSHIFT;
+    uint8_t modifier = 0;
     if (kbd_report.key_pressed_num == 0) {
         if (current_mode == MODE_USB)
         {
@@ -124,6 +126,10 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
 
     for (int i = 0; i < kbd_report.key_pressed_num; i++) {
         keycode = keycodes[kbd_report.key_data[i].output_index][kbd_report.key_data[i].input_index];
+        if (keycode == special_keys) {
+            modifier |= keycode;
+            keycode = 0;
+        }
         uint8_t key[6] = {keycode};
 
         char hexStr[20];  // Allocate enough space for the largest possible hex number
@@ -138,11 +144,11 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
 
         if (current_mode == MODE_USB)
         {
-            tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, 0, key);
+            tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, modifier, key);
         }
         else if (current_mode == MODE_BLE)
         {
-            esp_hidd_send_keyboard_value(hid_conn_id, 0, &keycode, 1);
+            esp_hidd_send_keyboard_value(hid_conn_id, modifier, &keycode, 1);
         }
          else if (current_mode == MODE_WIRELESS)
         {
