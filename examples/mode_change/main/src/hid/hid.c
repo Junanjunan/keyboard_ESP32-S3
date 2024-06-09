@@ -44,7 +44,11 @@ uint8_t keycodes[6][18] = {
 
 
 bool is_modifier (uint8_t keycode) {
-    for (hid_keyboard_modifier_bm_t modifier = KEYBOARD_MODIFIER_LEFTCTRL; modifier < 8; modifier ++) {
+    for (
+        hid_keyboard_modifier_bm_t modifier = KEYBOARD_MODIFIER_LEFTCTRL;
+        modifier <= KEYBOARD_MODIFIER_RIGHTGUI;
+        modifier <<=1
+    ) {
         if (keycode == modifier) {
             return true;
         }
