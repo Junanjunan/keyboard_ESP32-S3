@@ -81,6 +81,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
 
     for (int i = 0; i < kbd_report.key_pressed_num; i++) {
         keycode = keycodes[kbd_report.key_data[i].output_index][kbd_report.key_data[i].input_index];
+        ESP_LOGI(__func__, "pressed_keycode: %x", keycode);
         if (is_modifier(keycode)) {
             modifier |= keycode;
             keycode = 0;
