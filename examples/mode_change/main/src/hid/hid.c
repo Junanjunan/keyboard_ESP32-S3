@@ -63,7 +63,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
     uint8_t key[6] = {keycode};
     uint8_t espnow_release_key [] = "0";
     uint8_t modifier = 0;
-    if (kbd_report.key_pressed_num == 0) {
+    if (kbd_report.key_change_num < 0) {
         if (current_mode == MODE_USB)
         {
             tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, 0, key);
@@ -79,32 +79,34 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         return;
     }
 
-    for (int i = 0; i < kbd_report.key_pressed_num; i++) {
-        keycode = keycodes[kbd_report.key_data[i].output_index][kbd_report.key_data[i].input_index];
-        ESP_LOGI(__func__, "pressed_keycode: %x", keycode);
-        if (is_modifier(keycode)) {
-            modifier |= keycode;
-            keycode = 0;
-        }
-        uint8_t key[6] = {keycode};
+    if (kbd_report.key_change_num > 0) {
+        for (int i = 0; i < kbd_report.key_pressed_num; i++) {
+            keycode = keycodes[kbd_report.key_data[i].output_index][kbd_report.key_data[i].input_index];
+            ESP_LOGI(__func__, "pressed_keycode: %x", keycode);
+            if (is_modifier(keycode)) {
+                modifier |= keycode;
+                keycode = 0;
+            }
+            uint8_t key[6] = {keycode};
 
-        // Convert keycode to uint8_t array for esp_now_send
-        char temp [6];
-        uint8_t converted_data [6];
-        sprintf(temp, "%d", keycode);
-        memcpy(converted_data, temp, sizeof(temp));
+            // Convert keycode to uint8_t array for esp_now_send
+            char temp [6];
+            uint8_t converted_data [6];
+            sprintf(temp, "%d", keycode);
+            memcpy(converted_data, temp, sizeof(temp));
 
-        if (current_mode == MODE_USB)
-        {
-            tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, modifier, key);
-        }
-        else if (current_mode == MODE_BLE)
-        {
-            esp_hidd_send_keyboard_value(hid_conn_id, modifier, &keycode, 1);
-        }
-         else if (current_mode == MODE_WIRELESS)
-        {
-            esp_now_send(peer_mac, converted_data, 32);
+            if (current_mode == MODE_USB)
+            {
+                tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, modifier, key);
+            }
+            else if (current_mode == MODE_BLE)
+            {
+                esp_hidd_send_keyboard_value(hid_conn_id, modifier, &keycode, 1);
+            }
+            else if (current_mode == MODE_WIRELESS)
+            {
+                esp_now_send(peer_mac, converted_data, 32);
+            }
         }
     }
 }
