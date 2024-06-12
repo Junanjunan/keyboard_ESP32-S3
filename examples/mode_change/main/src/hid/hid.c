@@ -43,13 +43,21 @@ uint8_t keycodes[6][18] = {
 };
 
 
-bool is_modifier (uint8_t keycode) {
+bool is_modifier (uint8_t keycode, uint8_t output_index, uint8_t input_index) {
+    bool normal_key_indexes = (
+        (output_index == 0 && input_index == 9)     // HID_KEY_F7
+        || (output_index == 1 && input_index == 3)  // HID_KEY_3
+        || (output_index == 2 && input_index == 3)  // HID_KEY_E
+        || (output_index == 3 && input_index == 1)  // HID_KEY_A
+        || (output_index == 4 && input_index == 7)  // HID_KEY_M
+    );
+
     for (
         hid_keyboard_modifier_bm_t modifier = KEYBOARD_MODIFIER_LEFTCTRL;
         modifier <= KEYBOARD_MODIFIER_RIGHTGUI;
         modifier <<=1
     ) {
-        if (keycode == modifier) {
+        if (keycode == modifier && !normal_key_indexes) {
             return true;
         }
     }
@@ -83,7 +91,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         for (int i = 0; i < kbd_report.key_pressed_num; i++) {
             keycode = keycodes[kbd_report.key_data[i].output_index][kbd_report.key_data[i].input_index];
             ESP_LOGI(__func__, "pressed_keycode: %x", keycode);
-            if (is_modifier(keycode)) {
+            if (is_modifier(keycode, kbd_report.key_data[i].output_index, kbd_report.key_data[i].input_index)) {
                 modifier |= keycode;
                 keycode = 0;
             }
