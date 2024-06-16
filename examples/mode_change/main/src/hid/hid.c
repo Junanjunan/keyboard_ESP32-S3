@@ -89,9 +89,11 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
 
     if (kbd_report.key_change_num > 0) {
         uint32_t lpki = kbd_report.key_pressed_num - 1; // lpki stands for 'last pressed key index'
-        keycode = keycodes[kbd_report.key_data[lpki].output_index][kbd_report.key_data[lpki].input_index];
+        uint32_t last_output_index = kbd_report.key_data[lpki].output_index;
+        uint32_t last_input_index = kbd_report.key_data[lpki].input_index;
+        keycode = keycodes[last_output_index][last_input_index];
         ESP_LOGI(__func__, "pressed_keycode: %x", keycode);
-        if (is_modifier(keycode, kbd_report.key_data[lpki].output_index, kbd_report.key_data[lpki].input_index)) {
+        if (is_modifier(keycode, last_output_index, last_input_index)) {
             modifier |= keycode;
             keycode = 0;
         }
