@@ -30,6 +30,8 @@ keyboard_btn_config_t cfg = {
 
 
 keyboard_btn_handle_t kbd_handle = NULL;
+keyboard_btn_handle_t kbd_handle_combi_volume_decrement = NULL;
+keyboard_btn_handle_t kbd_handle_combi_volume_increment = NULL;
 
 
 // make function key at the bottom of F8 line (Current: HID_KEY_GUI_RIGHT)
@@ -39,7 +41,7 @@ uint8_t keycodes[6][18] = {
     {HID_KEY_TAB,                   HID_KEY_Q,                  HID_KEY_W,                  HID_KEY_E,      HID_KEY_R,      HID_KEY_T,       HID_KEY_Y,     HID_KEY_U,      HID_KEY_I,      HID_KEY_O,                  HID_KEY_P,                  HID_KEY_BRACKET_LEFT,   HID_KEY_BRACKET_RIGHT,  HID_KEY_NONE,   HID_KEY_BACKSLASH,              HID_KEY_DELETE,         HID_KEY_END,            HID_KEY_PAGE_DOWN},
     {HID_KEY_CAPS_LOCK,             HID_KEY_A,                  HID_KEY_S,                  HID_KEY_D,      HID_KEY_F,      HID_KEY_G,       HID_KEY_H,     HID_KEY_J,      HID_KEY_K,      HID_KEY_L,                  HID_KEY_SEMICOLON,          HID_KEY_APOSTROPHE,     HID_KEY_NONE,           HID_KEY_NONE,   HID_KEY_ENTER,                  HID_KEY_NONE,           HID_KEY_NONE,           HID_KEY_NONE},
     {KEYBOARD_MODIFIER_LEFTSHIFT,   HID_KEY_Z,                  HID_KEY_X,                  HID_KEY_C,      HID_KEY_V,      HID_KEY_B,       HID_KEY_N,     HID_KEY_M,      HID_KEY_COMMA,  HID_KEY_PERIOD,             HID_KEY_SLASH,              HID_KEY_NONE,           HID_KEY_NONE,           HID_KEY_NONE,   HID_KEY_SHIFT_RIGHT,            HID_KEY_NONE,           HID_KEY_ARROW_UP,       HID_KEY_NONE},
-    {KEYBOARD_MODIFIER_LEFTCTRL,    KEYBOARD_MODIFIER_LEFTGUI,  KEYBOARD_MODIFIER_LEFTALT,  HID_KEY_NONE,   HID_KEY_NONE,   HID_KEY_SPACE,   HID_KEY_NONE,  HID_KEY_NONE,   HID_KEY_NONE,   KEYBOARD_MODIFIER_RIGHTALT, KEYBOARD_MODIFIER_RIGHTGUI, HID_KEY_APPLICATION,    HID_KEY_NONE,           HID_KEY_NONE,   KEYBOARD_MODIFIER_RIGHTCTRL,    HID_KEY_ARROW_LEFT,     HID_KEY_ARROW_DOWN,     HID_KEY_ARROW_RIGHT}
+    {KEYBOARD_MODIFIER_LEFTCTRL,    KEYBOARD_MODIFIER_LEFTGUI,  KEYBOARD_MODIFIER_LEFTALT,  HID_KEY_NONE,   HID_KEY_NONE,   HID_KEY_SPACE,   HID_KEY_NONE,  HID_KEY_NONE,   HID_KEY_NONE,   KEYBOARD_MODIFIER_RIGHTALT, HID_KEY_NONE,               HID_KEY_APPLICATION,    HID_KEY_NONE,           HID_KEY_NONE,   KEYBOARD_MODIFIER_RIGHTCTRL,    HID_KEY_ARROW_LEFT,     HID_KEY_ARROW_DOWN,     HID_KEY_ARROW_RIGHT}
 };
 
 
@@ -127,7 +129,48 @@ keyboard_btn_cb_config_t cb_cfg = {
 };
 
 
+static void combi_volume_decrement(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_report, void *user_data)
+{
+    uint16_t keycode = HID_USAGE_CONSUMER_VOLUME_DECREMENT;
+    esp_hidd_send_consumer_value(hid_conn_id, keycode, 1);
+}
+
+
+keyboard_btn_cb_config_t cb_cfg_volume_decrement = {
+    .event = KBD_EVENT_COMBINATION,
+    .callback = combi_volume_decrement,
+    .event_data.combination.key_num = 2,
+    .event_data.combination.key_data = (keyboard_btn_data_t[]) {
+        {5, 10},    // Fn
+        {0, 13},    // F11
+    },
+};
+
+
+static void combi_volume_increment(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_report, void *user_data)
+{
+    uint16_t keycode = HID_USAGE_CONSUMER_VOLUME_INCREMENT;
+    esp_hidd_send_consumer_value(hid_conn_id, keycode, 1);
+}
+
+
+keyboard_btn_cb_config_t cb_cfg_volume_increment = {
+    .event = KBD_EVENT_COMBINATION,
+    .callback = combi_volume_increment,
+    .event_data.combination.key_num = 2,
+    .event_data.combination.key_data = (keyboard_btn_data_t[]) {
+        {5, 10},    // Fn
+        {0, 14},    // F12
+    },
+};
+
+
 void keyboard_task(void) {
     keyboard_button_create(&cfg, &kbd_handle);
+    keyboard_button_create(&cfg, &kbd_handle_combi_volume_decrement);
+    keyboard_button_create(&cfg, &kbd_handle_combi_volume_increment);
+
     keyboard_button_register_cb(kbd_handle, cb_cfg, NULL);
+    keyboard_button_register_cb(kbd_handle_combi_volume_decrement, cb_cfg_volume_decrement, NULL);
+    keyboard_button_register_cb(kbd_handle_combi_volume_increment, cb_cfg_volume_increment, NULL);    
 }
