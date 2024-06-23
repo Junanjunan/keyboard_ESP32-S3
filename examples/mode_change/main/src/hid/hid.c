@@ -10,6 +10,8 @@
 
 static uint16_t hid_conn_id = 0;
 
+bool use_fn = false;
+
 
 keyboard_btn_config_t cfg = {
     .output_gpios = (int[])
@@ -42,6 +44,25 @@ uint8_t keycodes[6][18] = {
     {KEYBOARD_MODIFIER_LEFTCTRL,    KEYBOARD_MODIFIER_LEFTGUI,  KEYBOARD_MODIFIER_LEFTALT,  HID_KEY_NONE,   HID_KEY_NONE,   HID_KEY_SPACE,   HID_KEY_NONE,  HID_KEY_NONE,   HID_KEY_NONE,   KEYBOARD_MODIFIER_RIGHTALT, HID_KEY_NONE,               HID_KEY_APPLICATION,    HID_KEY_NONE,           HID_KEY_NONE,   KEYBOARD_MODIFIER_RIGHTCTRL,    HID_KEY_ARROW_LEFT,     HID_KEY_ARROW_DOWN,     HID_KEY_ARROW_RIGHT}
 };
 
+uint8_t fn_keycodes[6][18] = {
+    {HID_KEY_ESCAPE,                HID_KEY_NONE,               HID_USAGE_CONSUMER_VOLUME_DECREMENT,                 HID_KEY_F2,     HID_KEY_F3,     HID_KEY_F4,      HID_KEY_NONE,  HID_KEY_F5,     HID_KEY_F6,     HID_KEY_F7,                 HID_KEY_F8,                 HID_KEY_F9,             HID_KEY_F10,            HID_KEY_F11,    HID_KEY_F12,                    HID_KEY_PRINT_SCREEN,   HID_KEY_SCROLL_LOCK,    HID_KEY_PAUSE},
+    {HID_KEY_GRAVE,                 HID_KEY_1,                  HID_KEY_2,                  HID_KEY_3,      HID_KEY_4,      HID_KEY_5,       HID_KEY_6,     HID_KEY_7,      HID_KEY_8,      HID_KEY_9,                  HID_KEY_0,                  HID_KEY_MINUS,          HID_KEY_EQUAL,          HID_KEY_NONE,   HID_KEY_BACKSPACE,              HID_KEY_INSERT,         HID_KEY_HOME,           HID_KEY_PAGE_UP},
+    {HID_KEY_TAB,                   HID_KEY_Q,                  HID_KEY_W,                  HID_KEY_E,      HID_KEY_R,      HID_KEY_T,       HID_KEY_Y,     HID_KEY_U,      HID_KEY_I,      HID_KEY_O,                  HID_KEY_P,                  HID_KEY_BRACKET_LEFT,   HID_KEY_BRACKET_RIGHT,  HID_KEY_NONE,   HID_KEY_BACKSLASH,              HID_KEY_DELETE,         HID_KEY_END,            HID_KEY_PAGE_DOWN},
+    {HID_KEY_CAPS_LOCK,             HID_KEY_A,                  HID_KEY_S,                  HID_KEY_D,      HID_KEY_F,      HID_KEY_G,       HID_KEY_H,     HID_KEY_J,      HID_KEY_K,      HID_KEY_L,                  HID_KEY_SEMICOLON,          HID_KEY_APOSTROPHE,     HID_KEY_NONE,           HID_KEY_NONE,   HID_KEY_ENTER,                  HID_KEY_NONE,           HID_KEY_NONE,           HID_KEY_NONE},
+    {KEYBOARD_MODIFIER_LEFTSHIFT,   HID_KEY_Z,                  HID_KEY_X,                  HID_KEY_C,      HID_KEY_V,      HID_KEY_B,       HID_KEY_N,     HID_KEY_M,      HID_KEY_COMMA,  HID_KEY_PERIOD,             HID_KEY_SLASH,              HID_KEY_NONE,           HID_KEY_NONE,           HID_KEY_NONE,   HID_KEY_SHIFT_RIGHT,            HID_KEY_NONE,           HID_KEY_ARROW_UP,       HID_KEY_NONE},
+    {KEYBOARD_MODIFIER_LEFTCTRL,    KEYBOARD_MODIFIER_LEFTGUI,  KEYBOARD_MODIFIER_LEFTALT,  HID_KEY_NONE,   HID_KEY_NONE,   HID_KEY_SPACE,   HID_KEY_NONE,  HID_KEY_NONE,   HID_KEY_NONE,   KEYBOARD_MODIFIER_RIGHTALT, HID_KEY_NONE,               HID_KEY_APPLICATION,    HID_KEY_NONE,           HID_KEY_NONE,   KEYBOARD_MODIFIER_RIGHTCTRL,    HID_KEY_ARROW_LEFT,     HID_KEY_ARROW_DOWN,     HID_KEY_ARROW_RIGHT}
+};
+
+uint8_t current_keycodes[6][18];
+
+void switch_keycodes(bool use_fn) {
+    if (use_fn) {
+        memcpy(current_keycodes, fn_keycodes, sizeof(fn_keycodes));
+    } else {
+        memcpy(current_keycodes, keycodes, sizeof(keycodes));
+    }
+}
+
 
 bool is_modifier (uint8_t keycode, uint8_t output_index, uint8_t input_index) {
     bool normal_key_indexes = (
@@ -71,6 +92,11 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
     uint8_t key[6] = {keycode};
     uint8_t espnow_release_key [] = "0";
     uint8_t modifier = 0;
+    if (use_fn == true) {
+        use_fn = false;
+        switch_keycodes(use_fn);
+    }
+
     if (kbd_report.key_change_num < 0) {
         if (current_mode == MODE_USB)
         {
@@ -91,15 +117,21 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         for (int i = 0; i < kbd_report.key_pressed_num; i++) {
             uint32_t output_index = kbd_report.key_data[i].output_index;
             uint32_t input_index = kbd_report.key_data[i].input_index;
-            keycode = keycodes[output_index][input_index];
+            keycode = current_keycodes[output_index][input_index];
             if (is_modifier(keycode, output_index, input_index)) {
                 modifier |= keycode;
+            }
+            if (output_index == 5 && input_index == 10) {
+                if (use_fn == false) {
+                    use_fn = true;
+                    switch_keycodes(use_fn);
+                }
             }
         }
         uint32_t lpki = kbd_report.key_pressed_num - 1; // lpki stands for 'last pressed key index'
         uint32_t last_output_index = kbd_report.key_data[lpki].output_index;
         uint32_t last_input_index = kbd_report.key_data[lpki].input_index;
-        keycode = keycodes[last_output_index][last_input_index];
+        keycode = current_keycodes[last_output_index][last_input_index];
         ESP_LOGI(__func__, "pressed_keycode: %x", keycode);
         if (is_modifier(keycode, last_output_index, last_input_index)) {
             keycode = 0;
@@ -118,7 +150,11 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         }
         else if (current_mode == MODE_BLE)
         {
-            esp_hidd_send_keyboard_value(hid_conn_id, modifier, &keycode, 1);
+            if (use_fn) {
+                esp_hidd_send_consumer_value(hid_conn_id, keycode, 1);
+            } else {
+                esp_hidd_send_keyboard_value(hid_conn_id, modifier, &keycode, 1);
+            }
         }
         else if (current_mode == MODE_WIRELESS)
         {
@@ -135,6 +171,7 @@ keyboard_btn_cb_config_t cb_cfg = {
 
 
 void keyboard_task(void) {
+    switch_keycodes(use_fn);
     keyboard_button_create(&cfg, &kbd_handle);
     keyboard_button_register_cb(kbd_handle, cb_cfg, NULL);
 }
