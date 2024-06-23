@@ -30,8 +30,6 @@ keyboard_btn_config_t cfg = {
 
 
 keyboard_btn_handle_t kbd_handle = NULL;
-keyboard_btn_handle_t kbd_handle_combi_volume_decrement = NULL;
-keyboard_btn_handle_t kbd_handle_combi_volume_increment = NULL;
 
 
 // make function key at the bottom of F8 line (Current: HID_KEY_GUI_RIGHT)
@@ -136,48 +134,7 @@ keyboard_btn_cb_config_t cb_cfg = {
 };
 
 
-static void combi_volume_decrement(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_report, void *user_data)
-{
-    uint16_t keycode = HID_USAGE_CONSUMER_VOLUME_DECREMENT;
-    esp_hidd_send_consumer_value(hid_conn_id, keycode, 1);
-}
-
-
-keyboard_btn_cb_config_t cb_cfg_volume_decrement = {
-    .event = KBD_EVENT_COMBINATION,
-    .callback = combi_volume_decrement,
-    .event_data.combination.key_num = 2,
-    .event_data.combination.key_data = (keyboard_btn_data_t[]) {
-        {5, 10},    // Fn
-        {0, 13},    // F11
-    },
-};
-
-
-static void combi_volume_increment(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_report, void *user_data)
-{
-    uint16_t keycode = HID_USAGE_CONSUMER_VOLUME_INCREMENT;
-    esp_hidd_send_consumer_value(hid_conn_id, keycode, 1);
-}
-
-
-keyboard_btn_cb_config_t cb_cfg_volume_increment = {
-    .event = KBD_EVENT_COMBINATION,
-    .callback = combi_volume_increment,
-    .event_data.combination.key_num = 2,
-    .event_data.combination.key_data = (keyboard_btn_data_t[]) {
-        {5, 10},    // Fn
-        {0, 14},    // F12
-    },
-};
-
-
 void keyboard_task(void) {
     keyboard_button_create(&cfg, &kbd_handle);
-    keyboard_button_create(&cfg, &kbd_handle_combi_volume_decrement);
-    keyboard_button_create(&cfg, &kbd_handle_combi_volume_increment);
-
     keyboard_button_register_cb(kbd_handle, cb_cfg, NULL);
-    keyboard_button_register_cb(kbd_handle_combi_volume_decrement, cb_cfg_volume_decrement, NULL);
-    keyboard_button_register_cb(kbd_handle_combi_volume_increment, cb_cfg_volume_increment, NULL);    
 }
