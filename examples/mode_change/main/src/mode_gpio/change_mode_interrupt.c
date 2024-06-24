@@ -7,7 +7,6 @@
 
 #include "change_mode_interrupt.h"
 #include "ble_main.h"
-#include "ble50_main.h"
 #include "tusb_main.h"
 #include "esp_now_main.h"
 
@@ -56,7 +55,6 @@ void gpio_task(void* arg) {
                     ble_main();
                 } else if (current_mode == MODE_WIRELESS) {
                     // esp_now_main();
-                    ble50_main();
                 }
             }
         }
