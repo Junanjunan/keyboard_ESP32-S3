@@ -10,7 +10,7 @@
 #include "freertos/task.h"
 #include "tinyusb.h"
 #include "driver/gpio.h"
-#include "hid.h"
+#include "hid_custom.h"
 #include "esp_now_main.h"
 
 #define APP_BUTTON (GPIO_NUM_0) // Use BOOT signal by default

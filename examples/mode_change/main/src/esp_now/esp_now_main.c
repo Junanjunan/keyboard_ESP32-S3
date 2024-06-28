@@ -10,7 +10,7 @@
 #include "nvs_flash.h"
 #include "esp_log.h"
 #include "tinyusb.h"
-#include "hid.h"
+#include "hid_custom.h"
 
 #define ESP_CHANNEL         1
 #define LED_STRIP           8

@@ -26,7 +26,7 @@
 #include "esp_bt_device.h"
 #include "driver/gpio.h"
 #include "hid_dev.h"
-#include "hid.h"
+#include "hid_custom.h"
 
 
 /**
