@@ -109,6 +109,8 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         else if (current_mode == MODE_BLE)
         {
             esp_hidd_send_keyboard_value(hid_conn_id, 0, &keycode, 1);
+            vTaskDelay(20 / portTICK_PERIOD_MS);
+            esp_hidd_send_consumer_value(hid_conn_id, empty_key, 1);
         }
         else if (current_mode == MODE_WIRELESS)
         {
