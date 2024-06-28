@@ -20,6 +20,7 @@ static const char *TAG = "example";
 /************* TinyUSB descriptors ****************/
 
 #define TUSB_DESC_TOTAL_LEN      (TUD_CONFIG_DESC_LEN + CFG_TUD_HID * TUD_HID_DESC_LEN)
+#define TUD_CONSUMER_CONTROL    3
 
 
 /**
@@ -29,6 +30,7 @@ static const char *TAG = "example";
  */
 const uint8_t hid_report_descriptor[] = {
     TUD_HID_REPORT_DESC_KEYBOARD(HID_REPORT_ID(HID_ITF_PROTOCOL_KEYBOARD)),
+    TUD_HID_REPORT_DESC_CONSUMER(HID_REPORT_ID(TUD_CONSUMER_CONTROL)),
 };
 
 

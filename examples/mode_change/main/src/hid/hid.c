@@ -7,6 +7,7 @@
 #include "esp_now.h"
 #include "esp_now_main.h"
 
+#define TUD_CONSUMER_CONTROL    3
 
 static uint16_t hid_conn_id = 0;
 
@@ -92,6 +93,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
     uint8_t key[6] = {keycode};
     uint8_t espnow_release_key [] = "0";
     uint8_t modifier = 0;
+    uint16_t empty_key = 0;
     if (use_fn == true) {
         use_fn = false;
         switch_keycodes(use_fn);
@@ -101,6 +103,8 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         if (current_mode == MODE_USB)
         {
             tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, 0, key);
+            vTaskDelay(20 / portTICK_PERIOD_MS);
+            tud_hid_report(TUD_CONSUMER_CONTROL, &empty_key, 2);
         }
         else if (current_mode == MODE_BLE)
         {
@@ -146,7 +150,11 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
 
         if (current_mode == MODE_USB)
         {
-            tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, modifier, key);
+            if (use_fn) {
+                tud_hid_report(TUD_CONSUMER_CONTROL, &keycode, 2);
+            } else {
+                tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, modifier, key);
+            }
         }
         else if (current_mode == MODE_BLE)
         {
