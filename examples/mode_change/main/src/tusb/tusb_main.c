@@ -119,14 +119,4 @@ void tusb_main(void)
     };
 
     ESP_ERROR_CHECK(tinyusb_driver_install(&tusb_cfg));
-
-    // ESP_LOGI(TAG, "USB initialization DONE");
-
-    bool out = false;
-    while (out == false) {
-        if (tud_mounted()) {
-            ESP_LOGI(__func__, "USB mounted and start keyboard task");
-            out = true;
-        }
-    }
 }

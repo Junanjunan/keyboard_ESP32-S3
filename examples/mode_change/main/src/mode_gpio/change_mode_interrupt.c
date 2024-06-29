@@ -13,6 +13,7 @@
 #include "nvs.h"
 #include "esp_task_wdt.h"
 #include "hid_custom.h"
+#include "tinyusb.h"
 
 
 void IRAM_ATTR gpio_isr_handler(void* arg) {
@@ -60,7 +61,18 @@ void gpio_task(void* arg) {
     // Add the current task to the watchdog's monitored task list
     ESP_ERROR_CHECK(esp_task_wdt_add(NULL));
     keyboard_task();
+    uint8_t count = 0;
     while (1) {
+        if (saved_mode == MODE_USB && !tud_mounted()) {
+            ESP_LOGI(__func__, "USB not mounted");
+            if (count == 50) {
+                ESP_LOGI(__func__, "USB not mounted for 3 seconds");
+                tinyusb_driver_uninstall();
+                saved_mode = MODE_BLE;
+                continue;
+            }
+            count ++;
+        }
         if (current_mode != saved_mode) {
             ESP_LOGI(__func__, "current_mode != saved_mode");
             current_mode = saved_mode;
