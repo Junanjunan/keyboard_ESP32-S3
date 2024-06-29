@@ -1,5 +1,6 @@
 #include "freertos/queue.h"
 #include "esp_attr.h"
+#include "mode_gpio.h"
 
 #define GPIO_USB_MODE           4
 #define GPIO_BLE_MODE           5
@@ -7,13 +8,6 @@
 
 
 extern QueueHandle_t gpio_evt_queue;
-
-
-typedef enum {
-    MODE_USB,
-    MODE_BLE,
-    MODE_WIRELESS
-} connection_mode_t;
 
 
 extern connection_mode_t current_mode;
