@@ -53,6 +53,10 @@ void gpio_task(void* arg) {
     connection_mode_t saved_mode = (connection_mode_t) mode_value;
     bool while_break = false;
 
+    if (saved_mode == 0) {
+        saved_mode = MODE_BLE;
+    }
+
     // Add the current task to the watchdog's monitored task list
     ESP_ERROR_CHECK(esp_task_wdt_add(NULL));
     keyboard_task();
