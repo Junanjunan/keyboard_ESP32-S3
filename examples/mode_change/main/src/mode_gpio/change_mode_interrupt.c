@@ -12,6 +12,7 @@
 #include "nvs_flash.h"
 #include "nvs.h"
 #include "esp_task_wdt.h"
+#include "hid_custom.h"
 
 
 void IRAM_ATTR gpio_isr_handler(void* arg) {
@@ -54,7 +55,7 @@ void gpio_task(void* arg) {
 
     // Add the current task to the watchdog's monitored task list
     ESP_ERROR_CHECK(esp_task_wdt_add(NULL));
-
+    keyboard_task();
     while (1) {
         if (current_mode != saved_mode) {
             ESP_LOGI(__func__, "current_mode != saved_mode");

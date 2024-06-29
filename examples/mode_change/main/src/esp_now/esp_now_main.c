@@ -91,5 +91,4 @@ void esp_now_main(void)
     ESP_ERROR_CHECK(init_wifi());
     ESP_ERROR_CHECK(init_esp_now());
     ESP_ERROR_CHECK(register_peer(peer_mac));
-    keyboard_task();
 }
