@@ -29,3 +29,6 @@ void IRAM_ATTR gpio_isr_handler(void *arg);
  * @note    This task will handle GPIO events and change the mode variable accordingly
  * **/
 void gpio_task(void *arg);
+
+
+void save_mode(connection_mode_t mode);
