@@ -27,6 +27,7 @@
 #include "driver/gpio.h"
 #include "hid_dev.h"
 #include "hid_custom.h"
+#include "ble_main.h"
 
 
 /**
@@ -91,7 +92,7 @@ static esp_ble_adv_data_t hidd_adv_data = {
 };
 
 
-static esp_ble_adv_params_t hidd_adv_params = {
+esp_ble_adv_params_t hidd_adv_params = {
     .adv_int_min        = 0x20,
     .adv_int_max        = 0x30,
     .adv_type           = ADV_TYPE_IND,
@@ -131,6 +132,12 @@ static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *
         case ESP_HIDD_EVENT_BLE_DISCONNECT: {
             ESP_LOGI(HID_DEMO_TAG, "ESP_HIDD_EVENT_BLE_DISCONNECT");
             sec_conn = false;
+            char bda_str[18];
+            ESP_LOGI(
+                __func__, "HERE DISCONNECT -> peer_addr: %s",
+                bda_to_string(hidd_adv_params.peer_addr, bda_str, sizeof(bda_str))
+            );
+            ESP_LOGI(__func__, "filter policy: %d", hidd_adv_params.adv_filter_policy);
             esp_ble_gap_start_advertising(&hidd_adv_params);
             break;
         }
@@ -151,10 +158,78 @@ static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *
 }
 
 
+// Function to save host address to NVS
+esp_err_t save_host_to_nvs(int index, bt_host_info_t *host) {
+    nvs_handle_t nvs_handle;
+    esp_err_t err;
+
+    err = nvs_open("storage", NVS_READWRITE, &nvs_handle);
+    if (err != ESP_OK) return err;
+
+    char key[15];
+    snprintf(key, sizeof(key), "%s%d", NVS_KEY_BASE, index);
+    
+    err = nvs_set_blob(nvs_handle, key, host, sizeof(bt_host_info_t));
+    if (err == ESP_OK) {
+        err = nvs_commit(nvs_handle);
+    }
+
+    nvs_close(nvs_handle);
+    return err;
+}
+
+
+// Function to load host address from NVS
+esp_err_t load_host_from_nvs(int index, bt_host_info_t *host) {
+    nvs_handle_t nvs_handle;
+    esp_err_t err;
+
+    err = nvs_open("storage", NVS_READONLY, &nvs_handle);
+    if (err != ESP_OK) return err;
+
+    char key[15];
+    snprintf(key, sizeof(key), "%s%d", NVS_KEY_BASE, index);
+    
+    size_t required_size = sizeof(bt_host_info_t);
+    err = nvs_get_blob(nvs_handle, key, host, &required_size);
+
+    nvs_close(nvs_handle);
+    return err;
+}
+
+
+// Function to convert BDA to string
+char *bda_to_string(esp_bd_addr_t bda, char *str, size_t size) {
+    if (bda == NULL || str == NULL || size < 18) {
+        return NULL;
+    }
+
+    snprintf(str, size, "%02x:%02x:%02x:%02x:%02x:%02x",
+             bda[0], bda[1], bda[2], bda[3], bda[4], bda[5]);
+    return str;
+}
+
+
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
 {
+    bt_host_info_t loaded_host;
+    esp_bd_addr_t bd_addr;
+    char* bd_name = "Host_2\0";
+    size_t name_len = strlen(bd_name);
     switch (event) {
         case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT~!");
+            load_host_from_nvs(0, &loaded_host);
+            char bda_str[18];
+            ESP_LOGI(
+                __func__, "peer_addr_before: %s",
+                bda_to_string(hidd_adv_params.peer_addr, bda_str, sizeof(bda_str))
+            );
+            
+            ESP_LOGI(
+                __func__, "peer_addr_after: %s",
+                bda_to_string(hidd_adv_params.peer_addr, bda_str, sizeof(bda_str))
+            );
             esp_ble_gap_start_advertising(&hidd_adv_params);
             break;
         case ESP_GAP_BLE_SEC_REQ_EVT:
@@ -165,11 +240,10 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
             break;
         case ESP_GAP_BLE_AUTH_CMPL_EVT:
             sec_conn = true;
-            esp_bd_addr_t bd_addr;
-            memcpy(bd_addr, param->ble_security.auth_cmpl.bd_addr, sizeof(esp_bd_addr_t));
-            ESP_LOGI(HID_DEMO_TAG, "remote BD_ADDR: %08x%04x",\
-                    (bd_addr[0] << 24) + (bd_addr[1] << 16) + (bd_addr[2] << 8) + bd_addr[3],
-                    (bd_addr[4] << 8) + bd_addr[5]);
+            ESP_LOGI(
+                __func__, "peer_addr: %s",
+                bda_to_string(param->ble_security.auth_cmpl.bd_addr, bda_str, sizeof(bda_str))
+            );
             ESP_LOGI(HID_DEMO_TAG, "address type = %d", param->ble_security.auth_cmpl.addr_type);
             ESP_LOGI(HID_DEMO_TAG, "pair status = %s",param->ble_security.auth_cmpl.success ? "success" : "fail");
             if(!param->ble_security.auth_cmpl.success) {
@@ -409,6 +483,24 @@ void ble_main(void)
         ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK( ret );
+
+    bt_host_info_t loaded_host;
+    char bda_str[18];
+    if (load_host_from_nvs(0, &loaded_host) == ESP_OK) {
+        ESP_LOGI(
+            __func__, "Host - 0: %s, Address: %s", 
+            loaded_host.name, 
+            bda_to_string(loaded_host.bda, bda_str, sizeof(bda_str))
+        );
+    }
+
+    if (load_host_from_nvs(1, &loaded_host) == ESP_OK) {
+        ESP_LOGI(
+            __func__, "Host - 1: %s, Address: %s", 
+            loaded_host.name, 
+            bda_to_string(loaded_host.bda, bda_str, sizeof(bda_str))
+        );
+    }
 
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
 
