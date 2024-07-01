@@ -552,6 +552,7 @@ void esp_hidd_prf_cb_hdl(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if,
 {
     switch(event) {
         case ESP_GATTS_REG_EVT: {
+            ESP_LOGI(HID_LE_PRF_TAG, "ESP_GATTS_REG_EVT");
             esp_ble_gap_config_local_icon (ESP_BLE_APPEARANCE_GENERIC_HID);
             esp_hidd_cb_param_t hidd_param;
             hidd_param.init_finish.state = param->reg.status;
@@ -573,9 +574,11 @@ void esp_hidd_prf_cb_hdl(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if,
             break;
         }
         case ESP_GATTS_CONF_EVT: {
+            ESP_LOGI(HID_LE_PRF_TAG, "ESP_GATTS_CONF_EVT");
             break;
         }
         case ESP_GATTS_CREATE_EVT:
+            ESP_LOGI(HID_LE_PRF_TAG, "ESP_GATTS_CREATE_EVT");
             break;
         case ESP_GATTS_CONNECT_EVT: {
             esp_hidd_cb_param_t cb_param = {0};
@@ -590,6 +593,7 @@ void esp_hidd_prf_cb_hdl(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if,
             break;
         }
         case ESP_GATTS_DISCONNECT_EVT: {
+            ESP_LOGI(HID_LE_PRF_TAG, "ESP_GATTS_DISCONNECT_EVT");
 			 if(hidd_le_env.hidd_cb != NULL) {
                     (hidd_le_env.hidd_cb)(ESP_HIDD_EVENT_BLE_DISCONNECT, NULL);
              }
@@ -597,8 +601,10 @@ void esp_hidd_prf_cb_hdl(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if,
             break;
         }
         case ESP_GATTS_CLOSE_EVT:
+            ESP_LOGI(HID_LE_PRF_TAG, "ESP_GATTS_CLOSE_EVT");
             break;
         case ESP_GATTS_WRITE_EVT: {
+            ESP_LOGI(HID_LE_PRF_TAG, "ESP_GATTS_WRITE_EVT");
             esp_hidd_cb_param_t cb_param = {0};
             if (param->write.handle == hidd_le_env.hidd_inst.att_tbl[HIDD_LE_IDX_REPORT_LED_OUT_VAL]) {
                 cb_param.led_write.conn_id = param->write.conn_id;
@@ -620,6 +626,7 @@ void esp_hidd_prf_cb_hdl(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if,
             break;
         }
         case ESP_GATTS_CREAT_ATTR_TAB_EVT: {
+            ESP_LOGI(HID_LE_PRF_TAG, "ESP_GATTS_CREAT_ATTR_TAB_EVT");
             if (param->add_attr_tab.num_handle == BAS_IDX_NB &&
                 param->add_attr_tab.svc_uuid.uuid.uuid16 == ESP_GATT_UUID_BATTERY_SERVICE_SVC &&
                 param->add_attr_tab.status == ESP_GATT_OK) {
