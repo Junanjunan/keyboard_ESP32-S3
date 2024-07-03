@@ -113,9 +113,11 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
     bt_host_info_t host_to_be_disconnected;
 
     // Hard coded MAC addresses - to be replaced with really connected MAC addresses
-    uint8_t remove_address[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    uint8_t remove_address1[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    uint8_t remove_address2[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
     uint8_t mac_address1[] = {0x8c, 0x55, 0x4a, 0x42, 0x9e, 0x46};
-    uint8_t mac_address2[] = {0x41, 0x40, 0x3e, 0xa6, 0x36, 0x70};
+    uint8_t mac_address2[] = {0x06, 0x6f, 0x0e, 0x00, 0x16, 0x12};
+    uint8_t mac_address3[] = {0x41, 0x40, 0x3e, 0xa6, 0x36, 0x70};
 
     if (use_fn == true) {
         use_fn = false;
@@ -193,39 +195,65 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                 char bda_str[18];
                 hidd_adv_params.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_WLST_CON_WLST;
                 if (keycode == HID_KEY_8) {
-                    if (load_host_from_nvs(0, &loaded_host) == ESP_OK) {
+                    // if (load_host_from_nvs(0, &loaded_host) == ESP_OK) {
                         load_host_from_nvs(1, &host_to_be_disconnected);
 
-                        memcpy(remove_address, mac_address2, sizeof(mac_address2));
+                        memcpy(remove_address1, mac_address2, sizeof(mac_address2));
+                        memcpy(remove_address2, mac_address3, sizeof(mac_address3));
                         memcpy(hidd_adv_params.peer_addr, mac_address1, sizeof(mac_address1));
-                        esp_ble_gap_update_whitelist(false, remove_address, BLE_WL_ADDR_TYPE_PUBLIC);
+                        esp_ble_gap_update_whitelist(false, remove_address1, BLE_WL_ADDR_TYPE_PUBLIC);
+                        esp_ble_gap_update_whitelist(false, remove_address2, BLE_WL_ADDR_TYPE_PUBLIC);
                         esp_ble_gap_update_whitelist(true, hidd_adv_params.peer_addr, BLE_WL_ADDR_TYPE_PUBLIC);
 
-                        esp_ble_gap_disconnect(remove_address);
+                        esp_ble_gap_disconnect(remove_address1);
+                        esp_ble_gap_disconnect(remove_address2);
                         esp_ble_gap_start_advertising(&hidd_adv_params);
 
                         ESP_LOGI(
                             __func__, "key8 Address: %s",
                             bda_to_string(hidd_adv_params.peer_addr, bda_str, sizeof(bda_str))
                         );
-                    }
+                    // }
                 } else if (keycode == HID_KEY_9) {
-                    if (load_host_from_nvs(1, &loaded_host) == ESP_OK) {
+                    // if (load_host_from_nvs(1, &loaded_host) == ESP_OK) {
                         load_host_from_nvs(0, &host_to_be_disconnected);
 
-                        memcpy(remove_address, mac_address1, sizeof(mac_address1));
+                        memcpy(remove_address1, mac_address1, sizeof(mac_address1));
+                        memcpy(remove_address2, mac_address3, sizeof(mac_address3));
                         memcpy(hidd_adv_params.peer_addr, mac_address2, sizeof(mac_address2));
-                        esp_ble_gap_update_whitelist(false, remove_address, BLE_WL_ADDR_TYPE_PUBLIC);
+                        esp_ble_gap_update_whitelist(false, remove_address1, BLE_WL_ADDR_TYPE_PUBLIC);
+                        esp_ble_gap_update_whitelist(false, remove_address2, BLE_WL_ADDR_TYPE_PUBLIC);
                         esp_ble_gap_update_whitelist(true, hidd_adv_params.peer_addr, BLE_WL_ADDR_TYPE_PUBLIC);
-                        
-                        esp_ble_gap_disconnect(remove_address);
+
+                        esp_ble_gap_disconnect(remove_address1);
+                        esp_ble_gap_disconnect(remove_address2);
                         esp_ble_gap_start_advertising(&hidd_adv_params);
 
                         ESP_LOGI(
                             __func__, "key9 Address: %s",
                             bda_to_string(hidd_adv_params.peer_addr, bda_str, sizeof(bda_str))
                         );
-                    }
+                    // }
+                } else if (keycode == HID_KEY_0) {
+                    // if (load_host_from_nvs(2, &loaded_host) == ESP_OK) {
+                        load_host_from_nvs(0, &host_to_be_disconnected);
+
+                        memcpy(remove_address1, mac_address1, sizeof(mac_address1));
+                        memcpy(remove_address2, mac_address2, sizeof(mac_address2));
+                        memcpy(hidd_adv_params.peer_addr, mac_address3, sizeof(mac_address3));
+                        esp_ble_gap_update_whitelist(false, remove_address1, BLE_WL_ADDR_TYPE_PUBLIC);
+                        esp_ble_gap_update_whitelist(false, remove_address2, BLE_WL_ADDR_TYPE_PUBLIC);
+                        esp_ble_gap_update_whitelist(true, hidd_adv_params.peer_addr, BLE_WL_ADDR_TYPE_PUBLIC);
+                        
+                        esp_ble_gap_disconnect(remove_address1);
+                        esp_ble_gap_disconnect(remove_address2);
+                        esp_ble_gap_start_advertising(&hidd_adv_params);
+
+                        ESP_LOGI(
+                            __func__, "key9 Address: %s",
+                            bda_to_string(hidd_adv_params.peer_addr, bda_str, sizeof(bda_str))
+                        );
+                    // }
                 } else {
                     esp_hidd_send_consumer_value(hid_conn_id, keycode, 1);
                 }
