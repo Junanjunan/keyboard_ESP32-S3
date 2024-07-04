@@ -16,6 +16,7 @@
 static uint16_t hid_conn_id = 0;
 
 bool use_fn = false;
+bool use_right_shift = false;
 
 
 keyboard_btn_config_t cfg = {
@@ -100,6 +101,29 @@ void change_mode(connection_mode_t mode) {
     esp_restart();
 }
 
+static void show_bonded_devices(void)
+{
+    int dev_num = esp_ble_get_bond_device_num();
+    if (dev_num == 0) {
+        ESP_LOGI(__func__, "Bonded devices number zero\n");
+        return;
+    }
+
+    esp_ble_bond_dev_t *dev_list = (esp_ble_bond_dev_t *)malloc(sizeof(esp_ble_bond_dev_t) * dev_num);
+    if (!dev_list) {
+        ESP_LOGE(__func__, "malloc failed, return\n");
+        return;
+    }
+    esp_ble_get_bond_device_list(&dev_num, dev_list);
+    ESP_LOGI(__func__, "Bonded devices number : %d\n", dev_num);
+
+    ESP_LOGI(__func__, "Bonded devices list : %d\n", dev_num);
+    for (int i = 0; i < dev_num; i++) {
+        esp_log_buffer_hex(__func__, (void *)dev_list[i].bd_addr, sizeof(esp_bd_addr_t));
+    }
+
+    free(dev_list);
+}
 
 void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_report, void *user_data)
 {
@@ -122,6 +146,10 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
     if (use_fn == true) {
         use_fn = false;
         switch_keycodes(use_fn);
+    }
+
+    if (use_right_shift == true) {
+        use_right_shift = false;
     }
 
     if (kbd_report.key_change_num < 0) {
@@ -158,6 +186,9 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                     switch_keycodes(use_fn);
                 }
             }
+            if (keycode == HID_KEY_RIGHT_SHIFT) {
+                use_right_shift = true;
+            }
         }
         uint32_t lpki = kbd_report.key_pressed_num - 1; // lpki stands for 'last pressed key index'
         uint32_t last_output_index = kbd_report.key_data[lpki].output_index;
@@ -190,6 +221,38 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         }
         else if (current_mode == MODE_BLE)
         {
+            ESP_LOGI(__func__, "use_fn, use_right_shift: %d, %d", use_fn, use_right_shift);
+            if (use_fn && use_right_shift) {
+                if (keycode == HID_KEY_8) {
+                    ESP_LOGI("BLE", "~~~~~~~key8~~~~~~~");
+                    
+                    esp_ble_gap_disconnect(mac_address1);
+                    esp_ble_gap_disconnect(mac_address2);
+                    esp_ble_gap_disconnect(mac_address3);
+                    esp_ble_remove_bond_device(mac_address1);
+                    show_bonded_devices();
+                    esp_ble_gap_start_advertising(&hidd_adv_params);
+                    return;
+                } else if (keycode == HID_KEY_9) {
+                    ESP_LOGI("BLE", "~~~~~~~key9~~~~~~~");
+                    esp_ble_gap_disconnect(mac_address1);
+                    esp_ble_gap_disconnect(mac_address2);
+                    esp_ble_gap_disconnect(mac_address3);
+                    esp_ble_remove_bond_device(mac_address2);
+                    show_bonded_devices();
+                    esp_ble_gap_start_advertising(&hidd_adv_params);
+                    return;
+                } else if (keycode == HID_KEY_0) {
+                    ESP_LOGI("BLE", "~~~~~~~key0~~~~~~~");
+                    esp_ble_gap_disconnect(mac_address1);
+                    esp_ble_gap_disconnect(mac_address2);
+                    esp_ble_gap_disconnect(mac_address3);
+                    esp_ble_remove_bond_device(mac_address3);
+                    show_bonded_devices();
+                    esp_ble_gap_start_advertising(&hidd_adv_params);
+                    return;
+                }
+            }
             if (use_fn) {
                 esp_hidd_send_consumer_value(hid_conn_id, keycode, 1);
                 char bda_str[18];

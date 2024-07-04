@@ -138,6 +138,8 @@ static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *
                 bda_to_string(hidd_adv_params.peer_addr, bda_str, sizeof(bda_str))
             );
             ESP_LOGI(__func__, "filter policy: %d", hidd_adv_params.adv_filter_policy);
+            esp_ble_remove_bond_device(hidd_adv_params.peer_addr);
+            memset(hidd_adv_params.peer_addr, 0, sizeof(hidd_adv_params.peer_addr));
             esp_ble_gap_start_advertising(&hidd_adv_params);
             break;
         }
@@ -312,6 +314,7 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
             break;
         case ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT");
+            esp_ble_gap_start_advertising(&hidd_adv_params);
             break;
         case ESP_GAP_BLE_CLEAR_BOND_DEV_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_CLEAR_BOND_DEV_COMPLETE_EVT");
