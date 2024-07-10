@@ -97,6 +97,7 @@ esp_ble_adv_params_t hidd_adv_params = {
     .adv_int_max        = 0x30,
     .adv_type           = ADV_TYPE_IND,
     .own_addr_type      = BLE_ADDR_TYPE_PUBLIC,
+    // .own_addr_type      = BLE_ADDR_TYPE_RPA_PUBLIC,
     //.peer_addr            =
     //.peer_addr_type       =
     .channel_map        = ADV_CHNL_ALL,
@@ -221,6 +222,7 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
     switch (event) {
         case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT~!");
+            // esp_ble_gap_config_local_privacy(true);
             load_host_from_nvs(0, &loaded_host);
             char bda_str[18];
             ESP_LOGI(
@@ -543,6 +545,7 @@ void ble_main(void)
 
     /* set the security iocap & auth_req & key size & init key response key parameters to the stack*/
     esp_ble_auth_req_t auth_req = ESP_LE_AUTH_BOND;     //bonding with peer device after authentication
+    // esp_ble_auth_req_t auth_req = ESP_LE_AUTH_REQ_SC_MITM_BOND;
     esp_ble_io_cap_t iocap = ESP_IO_CAP_NONE;           //set the IO capability to No output No input
     uint8_t key_size = 16;      //the key size should be 7~16 bytes
     uint8_t init_key = ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK;
