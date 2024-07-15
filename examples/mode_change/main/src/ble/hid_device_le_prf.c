@@ -583,6 +583,7 @@ void esp_hidd_prf_cb_hdl(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if,
         case ESP_GATTS_CONNECT_EVT: {
             esp_hidd_cb_param_t cb_param = {0};
 			ESP_LOGI(HID_LE_PRF_TAG, "HID connection establish, conn_id = %x",param->connect.conn_id);
+            ESP_LOGI(HID_LE_PRF_TAG, "remote_bda = %x:%x:%x:%x:%x:%x",param->connect.remote_bda[0],param->connect.remote_bda[1],param->connect.remote_bda[2],param->connect.remote_bda[3],param->connect.remote_bda[4],param->connect.remote_bda[5]);
 			memcpy(cb_param.connect.remote_bda, param->connect.remote_bda, sizeof(esp_bd_addr_t));
             cb_param.connect.conn_id = param->connect.conn_id;
             hidd_clcb_alloc(param->connect.conn_id, param->connect.remote_bda);

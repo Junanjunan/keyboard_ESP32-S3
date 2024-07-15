@@ -128,6 +128,10 @@ static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *
 		case ESP_HIDD_EVENT_BLE_CONNECT: {
             ESP_LOGI(HID_DEMO_TAG, "ESP_HIDD_EVENT_BLE_CONNECT");
             hid_conn_id = param->connect.conn_id;
+            ESP_LOGI(HID_DEMO_TAG, "ESP_HIDD_EVENT_BLE_CONNECT, conn_id %d", hid_conn_id);
+            ESP_LOGI(HID_DEMO_TAG, "ESP_HIDD_EVENT_BLE_CONNECT, remote_bda %02x:%02x:%02x:%02x:%02x:%02x",
+                     param->connect.remote_bda[0], param->connect.remote_bda[1], param->connect.remote_bda[2],
+                     param->connect.remote_bda[3], param->connect.remote_bda[4], param->connect.remote_bda[5]);
             break;
         }
         case ESP_HIDD_EVENT_BLE_DISCONNECT: {
@@ -245,7 +249,7 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
         case ESP_GAP_BLE_AUTH_CMPL_EVT:
             sec_conn = true;
             ESP_LOGI(
-                __func__, "peer_addr: %s",
+                "ESP_GAP_BLE_AUTH_CMPL_EVT", "peer_addr: %s",
                 bda_to_string(param->ble_security.auth_cmpl.bd_addr, bda_str, sizeof(bda_str))
             );
             ESP_LOGI(HID_DEMO_TAG, "address type = %d", param->ble_security.auth_cmpl.addr_type);
