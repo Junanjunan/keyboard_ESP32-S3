@@ -96,13 +96,39 @@ esp_ble_adv_params_t hidd_adv_params = {
     .adv_int_min        = 0x20,
     .adv_int_max        = 0x30,
     .adv_type           = ADV_TYPE_IND,
-    .own_addr_type      = BLE_ADDR_TYPE_PUBLIC,
+    // .own_addr_type      = BLE_ADDR_TYPE_PUBLIC,
+    .own_addr_type      = BLE_ADDR_TYPE_RANDOM,
     // .own_addr_type      = BLE_ADDR_TYPE_RPA_PUBLIC,
     //.peer_addr            =
     //.peer_addr_type       =
     .channel_map        = ADV_CHNL_ALL,
     .adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY,
 };
+
+void start_ble_advertising_with_custom_mac(void) {
+    esp_err_t ret;
+
+    // E (7933) BT_BTM: Advertising or scaning now, can't set randaddress 2 -> This error suggests that the code is trying to set a random address while advertising is already in progress.: stop advertising
+    esp_ble_gap_stop_advertising();
+
+    uint8_t random_addr[6] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x77};
+
+    ret = esp_ble_gap_set_rand_addr(random_addr);
+    if (ret != ESP_OK) {
+        ESP_LOGE(__func__, "Failed to set random address: %s", esp_err_to_name(ret));
+        return;
+    }
+
+    // Start advertising
+    ret = esp_ble_gap_start_advertising(&hidd_adv_params);
+    if (ret != ESP_OK) {
+        ESP_LOGE(__func__, "Failed to start advertising: %s", esp_err_to_name(ret));
+        return;
+    }
+
+    ESP_LOGI(__func__, "Started advertising HID keyboard with random address: %02X:%02X:%02X:%02X:%02X:%02X",
+             random_addr[0], random_addr[1], random_addr[2], random_addr[3], random_addr[4], random_addr[5]);
+}
 
 
 static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param)
@@ -145,7 +171,8 @@ static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *
             ESP_LOGI(__func__, "filter policy: %d", hidd_adv_params.adv_filter_policy);
             esp_ble_remove_bond_device(hidd_adv_params.peer_addr);
             memset(hidd_adv_params.peer_addr, 0, sizeof(hidd_adv_params.peer_addr));
-            esp_ble_gap_start_advertising(&hidd_adv_params);
+            // esp_ble_gap_start_advertising(&hidd_adv_params);
+            start_ble_advertising_with_custom_mac();
             break;
         }
         case ESP_HIDD_EVENT_BLE_VENDOR_REPORT_WRITE_EVT: {
@@ -238,7 +265,8 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
                 __func__, "peer_addr_after: %s",
                 bda_to_string(hidd_adv_params.peer_addr, bda_str, sizeof(bda_str))
             );
-            esp_ble_gap_start_advertising(&hidd_adv_params);
+            // esp_ble_gap_start_advertising(&hidd_adv_params);
+            start_ble_advertising_with_custom_mac();
             break;
         case ESP_GAP_BLE_SEC_REQ_EVT:
             for(int i = 0; i < ESP_BD_ADDR_LEN; i++) {
@@ -320,7 +348,8 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
             break;
         case ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT");
-            esp_ble_gap_start_advertising(&hidd_adv_params);
+            // esp_ble_gap_start_advertising(&hidd_adv_params);
+            start_ble_advertising_with_custom_mac();
             break;
         case ESP_GAP_BLE_CLEAR_BOND_DEV_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_CLEAR_BOND_DEV_COMPLETE_EVT");
