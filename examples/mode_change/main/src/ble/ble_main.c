@@ -280,8 +280,12 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
                 "ESP_GAP_BLE_AUTH_CMPL_EVT", "peer_addr: %s",
                 bda_to_string(param->ble_security.auth_cmpl.bd_addr, bda_str, sizeof(bda_str))
             );
+            ESP_LOGI(HID_DEMO_TAG, "key_present = %d",param->ble_security.auth_cmpl.key_present);
             ESP_LOGI(HID_DEMO_TAG, "address type = %d", param->ble_security.auth_cmpl.addr_type);
             ESP_LOGI(HID_DEMO_TAG, "pair status = %s",param->ble_security.auth_cmpl.success ? "success" : "fail");
+            ESP_LOGI(HID_DEMO_TAG, "key_type = %d",param->ble_security.auth_cmpl.key_type);
+            ESP_LOGI(HID_DEMO_TAG, "dev_type = %d",param->ble_security.auth_cmpl.dev_type);
+            ESP_LOGI(HID_DEMO_TAG, "auth_mode = %d",param->ble_security.auth_cmpl.auth_mode);
             if(!param->ble_security.auth_cmpl.success) {
                 ESP_LOGE(HID_DEMO_TAG, "fail reason = 0x%x",param->ble_security.auth_cmpl.fail_reason);
             }
