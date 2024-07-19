@@ -28,6 +28,7 @@
 #include "hid_dev.h"
 #include "hid_custom.h"
 #include "ble_main.h"
+#include "esp_mac.h"
 
 
 /**
@@ -68,6 +69,41 @@ static uint8_t hidd_service_uuid128[] = {
 
 #define TUSB_DESC_TOTAL_LEN      (TUD_CONFIG_DESC_LEN + CFG_TUD_HID * TUD_HID_DESC_LEN)
 
+// Define three custom MAC addresses
+static uint8_t custom_mac_1[6] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66};
+static uint8_t custom_mac_2[6] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
+static uint8_t custom_mac_3[6] = {0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC};
+
+
+// Function to set custom MAC address and enable RPA
+esp_err_t set_custom_mac_and_enable_rpa(uint8_t *mac_addr) {
+    esp_err_t ret;
+
+    // Ensure the MAC address is unicast (clear the least significant bit of the first octet)
+    mac_addr[0] &= 0xFE;
+
+    // Set base MAC address
+    ret = esp_base_mac_addr_set(mac_addr);
+    if (ret != ESP_OK) {
+        ESP_LOGE(__func__, "Failed to set base MAC address");
+        return ret;
+    }
+
+    // Enable RPA (Resolvable Private Address)
+    ret = esp_ble_gap_config_local_privacy(true);
+    if (ret != ESP_OK) {
+        ESP_LOGE(__func__, "Failed to enable local privacy");
+        return ret;
+    }
+
+    rpa_enabled = true;
+
+    ESP_LOGI(__func__, "Custom MAC set to %02X:%02X:%02X:%02X:%02X:%02X and RPA enabled successfully",
+             mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
+
+    return ESP_OK;
+}
+
 
 /*
  * Supplement to the Bluetooth Core Specification
@@ -97,7 +133,8 @@ esp_ble_adv_params_t hidd_adv_params = {
     .adv_int_max        = 0x30,
     .adv_type           = ADV_TYPE_IND,
     // .own_addr_type      = BLE_ADDR_TYPE_PUBLIC,
-    .own_addr_type      = BLE_ADDR_TYPE_RANDOM,
+    .own_addr_type      = BLE_ADDR_TYPE_RPA_RANDOM,
+    // .own_addr_type      = BLE_ADDR_TYPE_RANDOM,
     // .own_addr_type      = BLE_ADDR_TYPE_RPA_PUBLIC,
     //.peer_addr            =
     //.peer_addr_type       =
@@ -113,9 +150,19 @@ void start_ble_advertising_with_custom_mac(void) {
 
     uint8_t random_addr[6] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x77};
 
+
+    // Ensure the address is a static random address
+    random_addr[0] |= 0xC0;     // Set two most significant bits to 1
+
     ret = esp_ble_gap_set_rand_addr(random_addr);
     if (ret != ESP_OK) {
         ESP_LOGE(__func__, "Failed to set random address: %s", esp_err_to_name(ret));
+        return;
+    }
+
+    ret = esp_ble_gap_config_local_privacy(true);
+    if (ret != ESP_OK) {
+        ESP_LOGE(__func__, "Failed to enable local privacy");
         return;
     }
 
@@ -579,6 +626,7 @@ void ble_main(void)
     ///register the callback function to the gap module
     esp_ble_gap_register_callback(gap_event_handler);
     esp_hidd_register_callbacks(hidd_event_callback);
+    // set_custom_mac_and_enable_rpa(custom_mac_1);
 
     /* set the security iocap & auth_req & key size & init key response key parameters to the stack*/
     esp_ble_auth_req_t auth_req = ESP_LE_AUTH_REQ_SC_ONLY;          // It is done in BLE_ADDR_TYPE_RANDOM
