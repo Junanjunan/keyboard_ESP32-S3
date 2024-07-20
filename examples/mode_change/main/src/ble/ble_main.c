@@ -74,6 +74,15 @@ static uint8_t custom_mac_1[6] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66};
 static uint8_t custom_mac_2[6] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
 static uint8_t custom_mac_3[6] = {0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC};
 
+esp_bd_addr_t current_bda;
+
+int32_t current_ble_idx = 0;
+
+bool is_new_connection = false;
+
+bool is_disconnect_by_keyboard = false;
+
+bool is_bonded_addr_removed = false;
 
 // Function to set custom MAC address and enable RPA
 esp_err_t set_custom_mac_and_enable_rpa(uint8_t *mac_addr) {
@@ -95,8 +104,6 @@ esp_err_t set_custom_mac_and_enable_rpa(uint8_t *mac_addr) {
         ESP_LOGE(__func__, "Failed to enable local privacy");
         return ret;
     }
-
-    rpa_enabled = true;
 
     ESP_LOGI(__func__, "Custom MAC set to %02X:%02X:%02X:%02X:%02X:%02X and RPA enabled successfully",
              mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
@@ -177,6 +184,61 @@ void start_ble_advertising_with_custom_mac(void) {
 }
 
 
+int32_t get_saved_ble_idx() {
+    int32_t ble_idx = 0;
+
+    nvs_flash_init();
+    nvs_handle_t nvs_ble_idx_handle;
+    nvs_open("storage", NVS_READONLY, &nvs_ble_idx_handle);
+    nvs_get_i32(nvs_ble_idx_handle, "ble_idx", &ble_idx);
+    nvs_close(nvs_ble_idx_handle);
+    ESP_LOGI(__func__, "Loaded ble_idx is %ld", ble_idx);
+    return ble_idx;
+}
+
+
+void save_ble_idx(int32_t ble_idx) {
+    nvs_flash_init();
+    nvs_handle_t nvs_ble_idx_handle;
+    nvs_open("storage", NVS_READWRITE, &nvs_ble_idx_handle);
+    nvs_set_i32(nvs_ble_idx_handle, "ble_idx", ble_idx);
+    nvs_commit(nvs_ble_idx_handle);
+    nvs_close(nvs_ble_idx_handle);
+    ESP_LOGI(__func__, "Saved ble_idx is %ld", ble_idx);
+}
+
+
+void disconnect_all_bonded_devices(void) {
+    is_new_connection = true;
+    is_disconnect_by_keyboard = true;
+
+    int dev_num = esp_ble_get_bond_device_num();
+    if (dev_num == 0) {
+        ESP_LOGI(__func__, "Bonded devices number zero\n");
+        return;
+    }
+
+    esp_ble_bond_dev_t *dev_list = (esp_ble_bond_dev_t *)malloc(sizeof(esp_ble_bond_dev_t) * dev_num);
+    if (!dev_list) {
+        ESP_LOGE(__func__, "malloc failed, return\n");
+        return;
+    }
+
+    esp_ble_get_bond_device_list(&dev_num, dev_list);
+    for (int i = 0; i < dev_num; i++) {
+        esp_ble_gap_disconnect(dev_list[i].bd_addr);
+    }
+    free(dev_list);
+}
+
+
+void modify_removed_status_task (void) {
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+    is_bonded_addr_removed = false;
+    vTaskDelete(NULL);
+}
+
+
 static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param)
 {
     switch(event) {
@@ -204,6 +266,17 @@ static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *
             ESP_LOGI(HID_DEMO_TAG, "ESP_HIDD_EVENT_BLE_CONNECT, remote_bda %02x:%02x:%02x:%02x:%02x:%02x",
                      param->connect.remote_bda[0], param->connect.remote_bda[1], param->connect.remote_bda[2],
                      param->connect.remote_bda[3], param->connect.remote_bda[4], param->connect.remote_bda[5]);
+
+            char host_name[20];
+            snprintf(host_name, sizeof(host_name), "Host_%ld", current_ble_idx);
+            bt_host_info_t connected_host;
+            memcpy(connected_host.bda, param->connect.remote_bda, sizeof(connected_host.bda));
+            strncpy(connected_host.name, host_name, MAX_BT_DEVICENAME_LENGTH);
+            connected_host.name[MAX_BT_DEVICENAME_LENGTH] = '\0';
+
+            save_ble_idx(current_ble_idx);
+            save_host_to_nvs(current_ble_idx, &connected_host);
+            ESP_LOGI(HID_DEMO_TAG, "Connected to %s", host_name);
             break;
         }
         case ESP_HIDD_EVENT_BLE_DISCONNECT: {
@@ -335,6 +408,9 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
             if(!param->ble_security.auth_cmpl.success) {
                 ESP_LOGE(HID_DEMO_TAG, "fail reason = 0x%x",param->ble_security.auth_cmpl.fail_reason);
             }
+            memcpy(current_bda, param->ble_security.auth_cmpl.bd_addr, sizeof(current_bda));
+            is_new_connection = false;
+            is_disconnect_by_keyboard = false;
             break;
         case ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT");
@@ -353,6 +429,9 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
             break;
         case ESP_GAP_BLE_ADV_START_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_ADV_START_COMPLETE_EVT");
+            if (is_bonded_addr_removed) {
+                xTaskCreate(modify_removed_status_task, "modify_removed_status_task", 2048, NULL, 5, NULL);
+            }
             break;
         case ESP_GAP_BLE_SCAN_START_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SCAN_START_COMPLETE_EVT");
@@ -398,6 +477,14 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
             break;
         case ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT");
+            if (!is_disconnect_by_keyboard && !is_bonded_addr_removed) {
+                ESP_LOGI(HID_DEMO_TAG, "bda to be removed: %02x:%02x:%02x:%02x:%02x:%02x",
+                         current_bda[0], current_bda[1],
+                         current_bda[2], current_bda[3],
+                         current_bda[4], current_bda[5]);
+                esp_ble_remove_bond_device(current_bda);
+                is_bonded_addr_removed = true;
+            }
             esp_ble_gap_start_advertising(&hidd_adv_params);
             // start_ble_advertising_with_custom_mac();
             break;
@@ -628,7 +715,7 @@ void ble_main(void)
     // set_custom_mac_and_enable_rpa(custom_mac_1);
 
     /* set the security iocap & auth_req & key size & init key response key parameters to the stack*/
-    esp_ble_auth_req_t auth_req = ESP_LE_AUTH_BOND;          // It is done in BLE_ADDR_TYPE_RANDOM
+    esp_ble_auth_req_t auth_req = ESP_LE_AUTH_REQ_SC_MITM_BOND;
     // esp_ble_auth_req_t auth_req = ESP_LE_AUTH_REQ_SC_MITM;       // It is done in BLE_ADDR_TYPE_RANDOM
     esp_ble_io_cap_t iocap = ESP_IO_CAP_NONE;           //set the IO capability to No output No input
     uint8_t key_size = 16;      //the key size should be 7~16 bytes
