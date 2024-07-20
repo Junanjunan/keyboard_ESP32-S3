@@ -132,8 +132,7 @@ esp_ble_adv_params_t hidd_adv_params = {
     .adv_int_min        = 0x20,
     .adv_int_max        = 0x30,
     .adv_type           = ADV_TYPE_IND,
-    // .own_addr_type      = BLE_ADDR_TYPE_PUBLIC,
-    .own_addr_type      = BLE_ADDR_TYPE_RPA_RANDOM,
+    .own_addr_type      = BLE_ADDR_TYPE_PUBLIC,
     // .own_addr_type      = BLE_ADDR_TYPE_RANDOM,
     // .own_addr_type      = BLE_ADDR_TYPE_RPA_PUBLIC,
     //.peer_addr            =
@@ -218,8 +217,8 @@ static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *
             ESP_LOGI(__func__, "filter policy: %d", hidd_adv_params.adv_filter_policy);
             esp_ble_remove_bond_device(hidd_adv_params.peer_addr);
             memset(hidd_adv_params.peer_addr, 0, sizeof(hidd_adv_params.peer_addr));
-            // esp_ble_gap_start_advertising(&hidd_adv_params);
-            start_ble_advertising_with_custom_mac();
+            esp_ble_gap_start_advertising(&hidd_adv_params);
+            // start_ble_advertising_with_custom_mac();
             break;
         }
         case ESP_HIDD_EVENT_BLE_VENDOR_REPORT_WRITE_EVT: {
@@ -312,8 +311,8 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
                 __func__, "peer_addr_after: %s",
                 bda_to_string(hidd_adv_params.peer_addr, bda_str, sizeof(bda_str))
             );
-            // esp_ble_gap_start_advertising(&hidd_adv_params);
-            start_ble_advertising_with_custom_mac();
+            esp_ble_gap_start_advertising(&hidd_adv_params);
+            // start_ble_advertising_with_custom_mac();
             break;
         case ESP_GAP_BLE_SEC_REQ_EVT:
             for(int i = 0; i < ESP_BD_ADDR_LEN; i++) {
@@ -399,8 +398,8 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
             break;
         case ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT");
-            // esp_ble_gap_start_advertising(&hidd_adv_params);
-            start_ble_advertising_with_custom_mac();
+            esp_ble_gap_start_advertising(&hidd_adv_params);
+            // start_ble_advertising_with_custom_mac();
             break;
         case ESP_GAP_BLE_CLEAR_BOND_DEV_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_CLEAR_BOND_DEV_COMPLETE_EVT");
@@ -629,7 +628,7 @@ void ble_main(void)
     // set_custom_mac_and_enable_rpa(custom_mac_1);
 
     /* set the security iocap & auth_req & key size & init key response key parameters to the stack*/
-    esp_ble_auth_req_t auth_req = ESP_LE_AUTH_REQ_SC_ONLY;          // It is done in BLE_ADDR_TYPE_RANDOM
+    esp_ble_auth_req_t auth_req = ESP_LE_AUTH_BOND;          // It is done in BLE_ADDR_TYPE_RANDOM
     // esp_ble_auth_req_t auth_req = ESP_LE_AUTH_REQ_SC_MITM;       // It is done in BLE_ADDR_TYPE_RANDOM
     esp_ble_io_cap_t iocap = ESP_IO_CAP_NONE;           //set the IO capability to No output No input
     uint8_t key_size = 16;      //the key size should be 7~16 bytes
