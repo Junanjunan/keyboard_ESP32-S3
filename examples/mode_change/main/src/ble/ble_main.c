@@ -84,6 +84,10 @@ bool is_disconnect_by_keyboard = false;
 
 bool is_bonded_addr_removed = false;
 
+bool is_change_to_paired_device = false;
+
+bt_host_info_t host_to_be_connected;
+
 // Function to set custom MAC address and enable RPA
 esp_err_t set_custom_mac_and_enable_rpa(uint8_t *mac_addr) {
     esp_err_t ret;
@@ -207,6 +211,30 @@ void save_ble_idx(int32_t ble_idx) {
     ESP_LOGI(__func__, "Saved ble_idx is %ld", ble_idx);
 }
 
+void show_bonded_devices(void)
+{
+    int dev_num = esp_ble_get_bond_device_num();
+    if (dev_num == 0) {
+        ESP_LOGI(__func__, "Bonded devices number zero\n");
+        return;
+    }
+
+    esp_ble_bond_dev_t *dev_list = (esp_ble_bond_dev_t *)malloc(sizeof(esp_ble_bond_dev_t) * dev_num);
+    if (!dev_list) {
+        ESP_LOGE(__func__, "malloc failed, return\n");
+        return;
+    }
+    esp_ble_get_bond_device_list(&dev_num, dev_list);
+    ESP_LOGI(__func__, "Bonded devices number : %d\n", dev_num);
+
+    ESP_LOGI(__func__, "Bonded devices list : %d\n", dev_num);
+    for (int i = 0; i < dev_num; i++) {
+        esp_log_buffer_hex(__func__, (void *)dev_list[i].bd_addr, sizeof(esp_bd_addr_t));
+    }
+
+    free(dev_list);
+}
+
 
 void disconnect_all_bonded_devices(void) {
     is_new_connection = true;
@@ -229,6 +257,36 @@ void disconnect_all_bonded_devices(void) {
         esp_ble_gap_disconnect(dev_list[i].bd_addr);
     }
     free(dev_list);
+}
+
+
+void connect_allowed_device(esp_bd_addr_t allowed_bda) {
+    is_change_to_paired_device = true;
+    is_disconnect_by_keyboard = true;
+    int dev_num = esp_ble_get_bond_device_num();
+    if (dev_num == 0) {
+        ESP_LOGI(__func__, "Bonded devices number zero\n");
+        return;
+    }
+
+    esp_ble_bond_dev_t *dev_list = (esp_ble_bond_dev_t *)malloc(sizeof(esp_ble_bond_dev_t) * dev_num);
+    if (!dev_list) {
+        ESP_LOGE(__func__, "malloc failed, return\n");
+        return;
+    }
+
+    esp_ble_get_bond_device_list(&dev_num, dev_list);
+    for (int i = 0; i < dev_num; i++) {
+        if (memcmp(dev_list[i].bd_addr, allowed_bda, ESP_BD_ADDR_LEN) == 0) {
+            continue;
+        } else {
+            esp_ble_gap_disconnect(dev_list[i].bd_addr);
+        }
+    }
+    free(dev_list);
+    ESP_LOGI(__func__, "Allowed device bda: %02x:%02x:%02x:%02x:%02x:%02x",
+             allowed_bda[0], allowed_bda[1], allowed_bda[2], allowed_bda[3], allowed_bda[4], allowed_bda[5]);
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
 }
 
 
@@ -326,6 +384,9 @@ esp_err_t save_host_to_nvs(int index, bt_host_info_t *host) {
     if (err == ESP_OK) {
         err = nvs_commit(nvs_handle);
     }
+    
+    ESP_LOGI(__func__, "Saved host bda %02x:%02x:%02x:%02x:%02x:%02x",
+             host->bda[0], host->bda[1], host->bda[2], host->bda[3], host->bda[4], host->bda[5]);
 
     nvs_close(nvs_handle);
     return err;
@@ -411,6 +472,22 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
             memcpy(current_bda, param->ble_security.auth_cmpl.bd_addr, sizeof(current_bda));
             is_new_connection = false;
             is_disconnect_by_keyboard = false;
+            is_change_to_paired_device = false;
+
+            show_bonded_devices();
+            esp_ble_gap_stop_advertising();
+
+            bt_host_info_t saved_host;
+            load_host_from_nvs(1, &saved_host);
+            ESP_LOGI(HID_DEMO_TAG, "index 1 - Saved addr: %02x:%02x:%02x:%02x:%02x:%02x",
+                     saved_host.bda[0], saved_host.bda[1], saved_host.bda[2], saved_host.bda[3], saved_host.bda[4], saved_host.bda[5]);
+            load_host_from_nvs(2, &saved_host);
+            ESP_LOGI(HID_DEMO_TAG, "index 2 - Saved addr: %02x:%02x:%02x:%02x:%02x:%02x",
+                     saved_host.bda[0], saved_host.bda[1], saved_host.bda[2], saved_host.bda[3], saved_host.bda[4], saved_host.bda[5]);
+            load_host_from_nvs(3, &saved_host);
+            ESP_LOGI(HID_DEMO_TAG, "index 3 - Saved addr: %02x:%02x:%02x:%02x:%02x:%02x",
+                     saved_host.bda[0], saved_host.bda[1], saved_host.bda[2], saved_host.bda[3], saved_host.bda[4], saved_host.bda[5]);
+            
             break;
         case ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT");
@@ -478,6 +555,7 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
         case ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT");
             if (!is_disconnect_by_keyboard && !is_bonded_addr_removed) {
+                ESP_LOGI(HID_DEMO_TAG, "!is_disconnect_by_keyboard && !is_bonded_addr_removed");
                 ESP_LOGI(HID_DEMO_TAG, "bda to be removed: %02x:%02x:%02x:%02x:%02x:%02x",
                          current_bda[0], current_bda[1],
                          current_bda[2], current_bda[3],

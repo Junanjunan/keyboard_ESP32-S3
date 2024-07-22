@@ -101,29 +101,6 @@ void change_mode(connection_mode_t mode) {
     esp_restart();
 }
 
-static void show_bonded_devices(void)
-{
-    int dev_num = esp_ble_get_bond_device_num();
-    if (dev_num == 0) {
-        ESP_LOGI(__func__, "Bonded devices number zero\n");
-        return;
-    }
-
-    esp_ble_bond_dev_t *dev_list = (esp_ble_bond_dev_t *)malloc(sizeof(esp_ble_bond_dev_t) * dev_num);
-    if (!dev_list) {
-        ESP_LOGE(__func__, "malloc failed, return\n");
-        return;
-    }
-    esp_ble_get_bond_device_list(&dev_num, dev_list);
-    ESP_LOGI(__func__, "Bonded devices number : %d\n", dev_num);
-
-    ESP_LOGI(__func__, "Bonded devices list : %d\n", dev_num);
-    for (int i = 0; i < dev_num; i++) {
-        esp_log_buffer_hex(__func__, (void *)dev_list[i].bd_addr, sizeof(esp_bd_addr_t));
-    }
-
-    free(dev_list);
-}
 
 void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_report, void *user_data)
 {
@@ -225,21 +202,21 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
             if (use_fn && use_right_shift) {
                 if (keycode == HID_KEY_8) {
                     ESP_LOGI("BLE", "~~~~~~~key8~~~~~~~");
-                    current_ble_idx = 0;
+                    current_ble_idx = 1;
                     disconnect_all_bonded_devices();
                     show_bonded_devices();
                     esp_ble_gap_start_advertising(&hidd_adv_params);
                     return;
                 } else if (keycode == HID_KEY_9) {
                     ESP_LOGI("BLE", "~~~~~~~key9~~~~~~~");
-                    current_ble_idx = 1;
+                    current_ble_idx = 2;
                     disconnect_all_bonded_devices();
                     show_bonded_devices();
                     esp_ble_gap_start_advertising(&hidd_adv_params);
                     return;
                 } else if (keycode == HID_KEY_0) {
                     ESP_LOGI("BLE", "~~~~~~~key0~~~~~~~");
-                    current_ble_idx = 2;
+                    current_ble_idx = 3;
                     disconnect_all_bonded_devices();
                     show_bonded_devices();
                     esp_ble_gap_start_advertising(&hidd_adv_params);
@@ -252,65 +229,35 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                 // hidd_adv_params.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_WLST_CON_WLST;
                 is_new_connection = false;
                 if (keycode == HID_KEY_8) {
-                    // if (load_host_from_nvs(0, &loaded_host) == ESP_OK) {
-                        // load_host_from_nvs(1, &host_to_be_disconnected);
-
-                        // memcpy(remove_address1, mac_address2, sizeof(mac_address2));
-                        // memcpy(remove_address2, mac_address3, sizeof(mac_address3));
-                        // memcpy(hidd_adv_params.peer_addr, mac_address1, sizeof(mac_address1));
-                        // esp_ble_gap_update_whitelist(false, remove_address1, BLE_WL_ADDR_TYPE_PUBLIC);
-                        // esp_ble_gap_update_whitelist(false, remove_address2, BLE_WL_ADDR_TYPE_PUBLIC);
-                        // esp_ble_gap_update_whitelist(true, hidd_adv_params.peer_addr, BLE_WL_ADDR_TYPE_PUBLIC);
-
-                        // esp_ble_gap_disconnect(remove_address1);
-                        // esp_ble_gap_disconnect(remove_address2);
-                        esp_ble_gap_start_advertising(&hidd_adv_params);
-
-                        ESP_LOGI(
-                            __func__, "key8 Address: %s",
-                            bda_to_string(hidd_adv_params.peer_addr, bda_str, sizeof(bda_str))
-                        );
-                    // }
+                    is_change_to_paired_device = true;
+                    current_ble_idx = 1;
+                    load_host_from_nvs(current_ble_idx, &host_to_be_connected);
+                    ESP_LOGI(
+                        __func__, "ble_idx 1 bda: %s",
+                        bda_to_string(host_to_be_connected.bda, bda_str, sizeof(bda_str))
+                    );
+                    connect_allowed_device(host_to_be_connected.bda);
+                    esp_ble_gap_start_advertising(&hidd_adv_params);
                 } else if (keycode == HID_KEY_9) {
-                    // if (load_host_from_nvs(1, &loaded_host) == ESP_OK) {
-                        // load_host_from_nvs(0, &host_to_be_disconnected);
-
-                        // memcpy(remove_address1, mac_address1, sizeof(mac_address1));
-                        // memcpy(remove_address2, mac_address3, sizeof(mac_address3));
-                        // memcpy(hidd_adv_params.peer_addr, mac_address2, sizeof(mac_address2));
-                        // esp_ble_gap_update_whitelist(false, remove_address1, BLE_WL_ADDR_TYPE_PUBLIC);
-                        // esp_ble_gap_update_whitelist(false, remove_address2, BLE_WL_ADDR_TYPE_PUBLIC);
-                        // esp_ble_gap_update_whitelist(true, hidd_adv_params.peer_addr, BLE_WL_ADDR_TYPE_PUBLIC);
-
-                        // esp_ble_gap_disconnect(remove_address1);
-                        // esp_ble_gap_disconnect(remove_address2);
-                        esp_ble_gap_start_advertising(&hidd_adv_params);
-
-                        ESP_LOGI(
-                            __func__, "key9 Address: %s",
-                            bda_to_string(hidd_adv_params.peer_addr, bda_str, sizeof(bda_str))
-                        );
-                    // }
+                    is_change_to_paired_device = true;
+                    current_ble_idx = 2;
+                    load_host_from_nvs(current_ble_idx, &host_to_be_connected);
+                    ESP_LOGI(
+                        __func__, "ble_idx 2 bda: %s",
+                        bda_to_string(host_to_be_connected.bda, bda_str, sizeof(bda_str))
+                    );
+                    connect_allowed_device(host_to_be_connected.bda);
+                    esp_ble_gap_start_advertising(&hidd_adv_params);
                 } else if (keycode == HID_KEY_0) {
-                    // if (load_host_from_nvs(2, &loaded_host) == ESP_OK) {
-                        // load_host_from_nvs(0, &host_to_be_disconnected);
-
-                        // memcpy(remove_address1, mac_address1, sizeof(mac_address1));
-                        // memcpy(remove_address2, mac_address2, sizeof(mac_address2));
-                        // memcpy(hidd_adv_params.peer_addr, mac_address3, sizeof(mac_address3));
-                        // esp_ble_gap_update_whitelist(false, remove_address1, BLE_WL_ADDR_TYPE_PUBLIC);
-                        // esp_ble_gap_update_whitelist(false, remove_address2, BLE_WL_ADDR_TYPE_PUBLIC);
-                        // esp_ble_gap_update_whitelist(true, hidd_adv_params.peer_addr, BLE_WL_ADDR_TYPE_PUBLIC);
-                        
-                        // esp_ble_gap_disconnect(remove_address1);
-                        // esp_ble_gap_disconnect(remove_address2);
-                        esp_ble_gap_start_advertising(&hidd_adv_params);
-
-                        ESP_LOGI(
-                            __func__, "key9 Address: %s",
-                            bda_to_string(hidd_adv_params.peer_addr, bda_str, sizeof(bda_str))
-                        );
-                    // }
+                    is_change_to_paired_device = true;
+                    current_ble_idx = 3;
+                    load_host_from_nvs(current_ble_idx, &host_to_be_connected);
+                    ESP_LOGI(
+                        __func__, "ble_idx 3 bda: %s",
+                        bda_to_string(host_to_be_connected.bda, bda_str, sizeof(bda_str))
+                    );
+                    connect_allowed_device(host_to_be_connected.bda);
+                    esp_ble_gap_start_advertising(&hidd_adv_params);
                 } else {
                     esp_hidd_send_consumer_value(hid_conn_id, keycode, 1);
                 }

@@ -591,6 +591,12 @@ void esp_hidd_prf_cb_hdl(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if,
                 return;
             }
 
+            if (is_change_to_paired_device) {
+                connect_allowed_device(host_to_be_connected.bda);
+                ESP_LOGI(HID_LE_PRF_TAG, "Change to remote_bda = %02x:%02x:%02x:%02x:%02x:%02x",host_to_be_connected.bda[0],host_to_be_connected.bda[1],host_to_be_connected.bda[2],host_to_be_connected.bda[3],host_to_be_connected.bda[4],host_to_be_connected.bda[5]);
+                return;
+            }
+
 			memcpy(cb_param.connect.remote_bda, param->connect.remote_bda, sizeof(esp_bd_addr_t));
             cb_param.connect.conn_id = param->connect.conn_id;
             hidd_clcb_alloc(param->connect.conn_id, param->connect.remote_bda);
