@@ -69,11 +69,6 @@ static uint8_t hidd_service_uuid128[] = {
 
 #define TUSB_DESC_TOTAL_LEN      (TUD_CONFIG_DESC_LEN + CFG_TUD_HID * TUD_HID_DESC_LEN)
 
-// Define three custom MAC addresses
-static uint8_t custom_mac_1[6] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66};
-static uint8_t custom_mac_2[6] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
-static uint8_t custom_mac_3[6] = {0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC};
-
 esp_bd_addr_t current_bda;
 
 int32_t current_ble_idx = 0;
@@ -87,33 +82,6 @@ bool is_bonded_addr_removed = false;
 bool is_change_to_paired_device = false;
 
 bt_host_info_t host_to_be_connected;
-
-// Function to set custom MAC address and enable RPA
-esp_err_t set_custom_mac_and_enable_rpa(uint8_t *mac_addr) {
-    esp_err_t ret;
-
-    // Ensure the MAC address is unicast (clear the least significant bit of the first octet)
-    mac_addr[0] &= 0xFE;
-
-    // Set base MAC address
-    ret = esp_base_mac_addr_set(mac_addr);
-    if (ret != ESP_OK) {
-        ESP_LOGE(__func__, "Failed to set base MAC address");
-        return ret;
-    }
-
-    // Enable RPA (Resolvable Private Address)
-    ret = esp_ble_gap_config_local_privacy(true);
-    if (ret != ESP_OK) {
-        ESP_LOGE(__func__, "Failed to enable local privacy");
-        return ret;
-    }
-
-    ESP_LOGI(__func__, "Custom MAC set to %02X:%02X:%02X:%02X:%02X:%02X and RPA enabled successfully",
-             mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
-
-    return ESP_OK;
-}
 
 
 /*
@@ -144,48 +112,9 @@ esp_ble_adv_params_t hidd_adv_params = {
     .adv_int_max        = 0x30,
     .adv_type           = ADV_TYPE_IND,
     .own_addr_type      = BLE_ADDR_TYPE_PUBLIC,
-    // .own_addr_type      = BLE_ADDR_TYPE_RANDOM,
-    // .own_addr_type      = BLE_ADDR_TYPE_RPA_PUBLIC,
-    //.peer_addr            =
-    //.peer_addr_type       =
     .channel_map        = ADV_CHNL_ALL,
     .adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY,
 };
-
-void start_ble_advertising_with_custom_mac(void) {
-    esp_err_t ret;
-
-    // E (7933) BT_BTM: Advertising or scaning now, can't set randaddress 2 -> This error suggests that the code is trying to set a random address while advertising is already in progress.: stop advertising
-    esp_ble_gap_stop_advertising();
-
-    uint8_t random_addr[6] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x77};
-
-
-    // Ensure the address is a static random address
-    random_addr[0] |= 0xC0;     // Set two most significant bits to 1
-
-    ret = esp_ble_gap_set_rand_addr(random_addr);
-    if (ret != ESP_OK) {
-        ESP_LOGE(__func__, "Failed to set random address: %s", esp_err_to_name(ret));
-        return;
-    }
-
-    ret = esp_ble_gap_config_local_privacy(true);
-    if (ret != ESP_OK) {
-        ESP_LOGE(__func__, "Failed to enable local privacy");
-        return;
-    }
-
-    // Start advertising
-    ret = esp_ble_gap_start_advertising(&hidd_adv_params);
-    if (ret != ESP_OK) {
-        ESP_LOGE(__func__, "Failed to start advertising: %s", esp_err_to_name(ret));
-        return;
-    }
-
-    ESP_LOGI(__func__, "Started advertising HID keyboard with random address: %02X:%02X:%02X:%02X:%02X:%02X",
-             random_addr[0], random_addr[1], random_addr[2], random_addr[3], random_addr[4], random_addr[5]);
-}
 
 
 int32_t get_saved_ble_idx() {
@@ -314,7 +243,6 @@ static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *
         case ESP_HIDD_EVENT_REG_FINISH: {
             ESP_LOGI(HID_DEMO_TAG, "ESP_HIDD_EVENT_REG_FINISH");
             if (param->init_finish.state == ESP_HIDD_INIT_OK) {
-                //esp_bd_addr_t rand_addr = {0x04,0x11,0x11,0x11,0x11,0x05};
                 esp_ble_gap_set_device_name(HIDD_DEVICE_NAME);
                 esp_ble_gap_config_adv_data(&hidd_adv_data);
 
@@ -331,7 +259,6 @@ static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *
 		case ESP_HIDD_EVENT_BLE_CONNECT: {
             ESP_LOGI(HID_DEMO_TAG, "ESP_HIDD_EVENT_BLE_CONNECT");
             hid_conn_id = param->connect.conn_id;
-            ESP_LOGI(HID_DEMO_TAG, "ESP_HIDD_EVENT_BLE_CONNECT, conn_id %d", hid_conn_id);
             ESP_LOGI(HID_DEMO_TAG, "ESP_HIDD_EVENT_BLE_CONNECT, remote_bda %02x:%02x:%02x:%02x:%02x:%02x",
                      param->connect.remote_bda[0], param->connect.remote_bda[1], param->connect.remote_bda[2],
                      param->connect.remote_bda[3], param->connect.remote_bda[4], param->connect.remote_bda[5]);
@@ -351,15 +278,9 @@ static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *
             ESP_LOGI(HID_DEMO_TAG, "ESP_HIDD_EVENT_BLE_DISCONNECT");
             sec_conn = false;
             char bda_str[18];
-            ESP_LOGI(
-                __func__, "HERE DISCONNECT -> peer_addr: %s",
-                bda_to_string(hidd_adv_params.peer_addr, bda_str, sizeof(bda_str))
-            );
-            ESP_LOGI(__func__, "filter policy: %d", hidd_adv_params.adv_filter_policy);
             esp_ble_remove_bond_device(hidd_adv_params.peer_addr);
             memset(hidd_adv_params.peer_addr, 0, sizeof(hidd_adv_params.peer_addr));
             esp_ble_gap_start_advertising(&hidd_adv_params);
-            // start_ble_advertising_with_custom_mac();
             break;
         }
         case ESP_HIDD_EVENT_BLE_VENDOR_REPORT_WRITE_EVT: {
@@ -443,20 +364,9 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
     switch (event) {
         case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT~!");
-            // esp_ble_gap_config_local_privacy(true);
             load_host_from_nvs(0, &loaded_host);
             char bda_str[18];
-            ESP_LOGI(
-                __func__, "peer_addr_before: %s",
-                bda_to_string(hidd_adv_params.peer_addr, bda_str, sizeof(bda_str))
-            );
-            
-            ESP_LOGI(
-                __func__, "peer_addr_after: %s",
-                bda_to_string(hidd_adv_params.peer_addr, bda_str, sizeof(bda_str))
-            );
             esp_ble_gap_start_advertising(&hidd_adv_params);
-            // start_ble_advertising_with_custom_mac();
             break;
         case ESP_GAP_BLE_SEC_REQ_EVT:
             for(int i = 0; i < ESP_BD_ADDR_LEN; i++) {
@@ -563,7 +473,6 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
                 is_bonded_addr_removed = true;
             }
             esp_ble_gap_start_advertising(&hidd_adv_params);
-            // start_ble_advertising_with_custom_mac();
             break;
         case ESP_GAP_BLE_CLEAR_BOND_DEV_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_CLEAR_BOND_DEV_COMPLETE_EVT");
@@ -789,11 +698,9 @@ void ble_main(void)
     ///register the callback function to the gap module
     esp_ble_gap_register_callback(gap_event_handler);
     esp_hidd_register_callbacks(hidd_event_callback);
-    // set_custom_mac_and_enable_rpa(custom_mac_1);
 
     /* set the security iocap & auth_req & key size & init key response key parameters to the stack*/
     esp_ble_auth_req_t auth_req = ESP_LE_AUTH_REQ_SC_MITM_BOND;
-    // esp_ble_auth_req_t auth_req = ESP_LE_AUTH_REQ_SC_MITM;       // It is done in BLE_ADDR_TYPE_RANDOM
     esp_ble_io_cap_t iocap = ESP_IO_CAP_NONE;           //set the IO capability to No output No input
     uint8_t key_size = 16;      //the key size should be 7~16 bytes
     uint8_t init_key = ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK;
