@@ -172,6 +172,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         uint32_t last_input_index = kbd_report.key_data[lpki].input_index;
         keycode = current_keycodes[last_output_index][last_input_index];
         ESP_LOGI(__func__, "pressed_keycode: %x", keycode);
+        show_bonded_devices();
         if (is_modifier(keycode, last_output_index, last_input_index)) {
             keycode = 0;
         }

@@ -225,12 +225,23 @@ void show_bonded_devices(void)
         return;
     }
     esp_ble_get_bond_device_list(&dev_num, dev_list);
-    ESP_LOGI(__func__, "Bonded devices number : %d\n", dev_num);
+    ESP_LOGI(__func__, "Bonded devices number : %d", dev_num);
 
-    ESP_LOGI(__func__, "Bonded devices list : %d\n", dev_num);
+    ESP_LOGI(__func__, "Bonded devices list : %d", dev_num);
     for (int i = 0; i < dev_num; i++) {
         esp_log_buffer_hex(__func__, (void *)dev_list[i].bd_addr, sizeof(esp_bd_addr_t));
     }
+
+    bt_host_info_t host;
+    load_host_from_nvs(1, &host);
+    ESP_LOGI(HID_DEMO_TAG, "index 1 - Saved addr!!!: %02x:%02x:%02x:%02x:%02x:%02x",
+                     host.bda[0], host.bda[1], host.bda[2], host.bda[3], host.bda[4], host.bda[5]);
+    load_host_from_nvs(2, &host);
+    ESP_LOGI(HID_DEMO_TAG, "index 2 - Saved addr!!!: %02x:%02x:%02x:%02x:%02x:%02x",
+                     host.bda[0], host.bda[1], host.bda[2], host.bda[3], host.bda[4], host.bda[5]);
+    load_host_from_nvs(3, &host);
+    ESP_LOGI(HID_DEMO_TAG, "index 3 - Saved addr!!!: %02x:%02x:%02x:%02x:%02x:%02x",
+                     host.bda[0], host.bda[1], host.bda[2], host.bda[3], host.bda[4], host.bda[5]);
 
     free(dev_list);
 }
@@ -334,7 +345,6 @@ static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *
 
             save_ble_idx(current_ble_idx);
             save_host_to_nvs(current_ble_idx, &connected_host);
-            ESP_LOGI(HID_DEMO_TAG, "Connected to %s", host_name);
             break;
         }
         case ESP_HIDD_EVENT_BLE_DISCONNECT: {
@@ -476,17 +486,6 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
 
             show_bonded_devices();
             esp_ble_gap_stop_advertising();
-
-            bt_host_info_t saved_host;
-            load_host_from_nvs(1, &saved_host);
-            ESP_LOGI(HID_DEMO_TAG, "index 1 - Saved addr: %02x:%02x:%02x:%02x:%02x:%02x",
-                     saved_host.bda[0], saved_host.bda[1], saved_host.bda[2], saved_host.bda[3], saved_host.bda[4], saved_host.bda[5]);
-            load_host_from_nvs(2, &saved_host);
-            ESP_LOGI(HID_DEMO_TAG, "index 2 - Saved addr: %02x:%02x:%02x:%02x:%02x:%02x",
-                     saved_host.bda[0], saved_host.bda[1], saved_host.bda[2], saved_host.bda[3], saved_host.bda[4], saved_host.bda[5]);
-            load_host_from_nvs(3, &saved_host);
-            ESP_LOGI(HID_DEMO_TAG, "index 3 - Saved addr: %02x:%02x:%02x:%02x:%02x:%02x",
-                     saved_host.bda[0], saved_host.bda[1], saved_host.bda[2], saved_host.bda[3], saved_host.bda[4], saved_host.bda[5]);
             
             break;
         case ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT:
