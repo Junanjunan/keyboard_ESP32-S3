@@ -25,8 +25,6 @@ extern bt_host_info_t host_to_be_connected;
 
 void show_bonded_devices(void);
 
-void connect_allowed_device(esp_bd_addr_t allowed_bda);
-
 char *bda_to_string(esp_bd_addr_t bda, char *str, size_t size);
 
 int32_t get_saved_ble_idx(void);

@@ -237,7 +237,6 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                         __func__, "ble_idx 1 bda: %s",
                         bda_to_string(host_to_be_connected.bda, bda_str, sizeof(bda_str))
                     );
-                    connect_allowed_device(host_to_be_connected.bda);
                     esp_ble_gap_start_advertising(&hidd_adv_params);
                 } else if (keycode == HID_KEY_9) {
                     is_change_to_paired_device = true;
@@ -247,7 +246,6 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                         __func__, "ble_idx 2 bda: %s",
                         bda_to_string(host_to_be_connected.bda, bda_str, sizeof(bda_str))
                     );
-                    connect_allowed_device(host_to_be_connected.bda);
                     esp_ble_gap_start_advertising(&hidd_adv_params);
                 } else if (keycode == HID_KEY_0) {
                     is_change_to_paired_device = true;
@@ -257,7 +255,6 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                         __func__, "ble_idx 3 bda: %s",
                         bda_to_string(host_to_be_connected.bda, bda_str, sizeof(bda_str))
                     );
-                    connect_allowed_device(host_to_be_connected.bda);
                     esp_ble_gap_start_advertising(&hidd_adv_params);
                 } else {
                     esp_hidd_send_consumer_value(hid_conn_id, keycode, 1);

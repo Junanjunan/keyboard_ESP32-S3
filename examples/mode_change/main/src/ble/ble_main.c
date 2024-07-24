@@ -201,36 +201,6 @@ void disconnect_all_bonded_devices(void) {
 }
 
 
-void connect_allowed_device(esp_bd_addr_t allowed_bda) {
-    is_change_to_paired_device = true;
-    is_disconnect_by_keyboard = true;
-    int dev_num = esp_ble_get_bond_device_num();
-    if (dev_num == 0) {
-        ESP_LOGI(__func__, "Bonded devices number zero\n");
-        return;
-    }
-
-    esp_ble_bond_dev_t *dev_list = (esp_ble_bond_dev_t *)malloc(sizeof(esp_ble_bond_dev_t) * dev_num);
-    if (!dev_list) {
-        ESP_LOGE(__func__, "malloc failed, return\n");
-        return;
-    }
-
-    esp_ble_get_bond_device_list(&dev_num, dev_list);
-    for (int i = 0; i < dev_num; i++) {
-        if (memcmp(dev_list[i].bd_addr, allowed_bda, ESP_BD_ADDR_LEN) == 0) {
-            continue;
-        } else {
-            esp_ble_gap_disconnect(dev_list[i].bd_addr);
-        }
-    }
-    free(dev_list);
-    ESP_LOGI(__func__, "Allowed device bda: %02x:%02x:%02x:%02x:%02x:%02x",
-             allowed_bda[0], allowed_bda[1], allowed_bda[2], allowed_bda[3], allowed_bda[4], allowed_bda[5]);
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
-}
-
-
 void modify_removed_status_task (void) {
     vTaskDelay(100 / portTICK_PERIOD_MS);
     is_bonded_addr_removed = false;
