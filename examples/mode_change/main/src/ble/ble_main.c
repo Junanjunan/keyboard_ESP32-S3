@@ -223,6 +223,37 @@ void remove_all_bonded_devices(void)
 }
 
 
+void remove_unsaved_pairing_device(void) {
+    int dev_num = esp_ble_get_bond_device_num();
+    if (dev_num == 0) {
+        ESP_LOGI(__func__, "Bonded devices number zero\n");
+        return;
+    }
+
+    esp_ble_bond_dev_t *dev_list = (esp_ble_bond_dev_t *)malloc(sizeof(esp_ble_bond_dev_t) * dev_num);
+    if (!dev_list) {
+        ESP_LOGE(__func__, "malloc failed, return\n");
+        return;
+    }
+
+    bt_host_info_t host_index_1;
+    bt_host_info_t host_index_2;
+    bt_host_info_t host_index_3;
+    load_host_from_nvs(1, &host_index_1);
+    load_host_from_nvs(2, &host_index_2);
+    load_host_from_nvs(3, &host_index_3);
+
+    esp_ble_get_bond_device_list(&dev_num, dev_list);
+    for (int i = 0; i < dev_num; i++) {
+        if (memcmp(dev_list[i].bd_addr, host_index_1.bda, sizeof(esp_bd_addr_t)) != 0 &&
+            memcmp(dev_list[i].bd_addr, host_index_2.bda, sizeof(esp_bd_addr_t)) != 0 &&
+            memcmp(dev_list[i].bd_addr, host_index_3.bda, sizeof(esp_bd_addr_t)) != 0) {
+            esp_ble_remove_bond_device(dev_list[i].bd_addr);
+        }
+    }
+}
+
+
 void modify_removed_status_task (void) {
     vTaskDelay(100 / portTICK_PERIOD_MS);
     is_bonded_addr_removed = false;
@@ -438,6 +469,7 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
             break;
         case ESP_GAP_BLE_ADV_START_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_ADV_START_COMPLETE_EVT");
+            remove_unsaved_pairing_device();
             if (is_bonded_addr_removed) {
                 xTaskCreate(modify_removed_status_task, "modify_removed_status_task", 2048, NULL, 5, NULL);
             }

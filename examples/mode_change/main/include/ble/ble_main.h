@@ -35,6 +35,8 @@ void disconnect_all_bonded_devices(void);
 
 void remove_all_bonded_devices(void);
 
+void remove_unsaved_pairing_device(void);
+
 esp_err_t save_host_to_nvs(int index, bt_host_info_t *host);
 
 esp_err_t load_host_from_nvs(int index, bt_host_info_t *host);
