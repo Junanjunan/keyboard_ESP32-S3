@@ -201,6 +201,28 @@ void disconnect_all_bonded_devices(void) {
 }
 
 
+void remove_all_bonded_devices(void)
+{
+    int dev_num = esp_ble_get_bond_device_num();
+    if (dev_num == 0) {
+        ESP_LOGI(__func__, "Bonded devices number zero\n");
+        return;
+    }
+
+    esp_ble_bond_dev_t *dev_list = (esp_ble_bond_dev_t *)malloc(sizeof(esp_ble_bond_dev_t) * dev_num);
+    if (!dev_list) {
+        ESP_LOGE(__func__, "malloc failed, return\n");
+        return;
+    }
+    esp_ble_get_bond_device_list(&dev_num, dev_list);
+    for (int i = 0; i < dev_num; i++) {
+        esp_ble_remove_bond_device(dev_list[i].bd_addr);
+    }
+
+    free(dev_list);
+}
+
+
 void modify_removed_status_task (void) {
     vTaskDelay(100 / portTICK_PERIOD_MS);
     is_bonded_addr_removed = false;
@@ -297,6 +319,37 @@ esp_err_t load_host_from_nvs(int index, bt_host_info_t *host) {
     
     size_t required_size = sizeof(bt_host_info_t);
     err = nvs_get_blob(nvs_handle, key, host, &required_size);
+
+    nvs_close(nvs_handle);
+    return err;
+}
+
+
+esp_err_t delete_host_from_nvs(int index) {
+    nvs_handle_t nvs_handle;
+    esp_err_t err;
+    bt_host_info_t empty_host;
+
+    err = nvs_open("storage", NVS_READWRITE, &nvs_handle);
+    if (err != ESP_OK) return err;
+
+    char key[15];
+    snprintf(key, sizeof(key), "%s%d", NVS_KEY_BASE, index);
+    strncpy(empty_host.name, key, MAX_BT_DEVICENAME_LENGTH);
+    memcpy(empty_host.bda, (uint8_t[6]){0}, 6);
+
+    err = nvs_set_blob(nvs_handle, key, &empty_host, sizeof(bt_host_info_t));
+    if (err == ESP_OK) {
+        err = nvs_commit(nvs_handle);
+    }
+
+    if (err == ESP_OK) {
+        ESP_LOGI(__func__, "Successfully deleted host info at index %d", index);
+    } else if (err == ESP_ERR_NVS_NOT_FOUND) {
+        ESP_LOGW(__func__, "No host info found at index %d", index);
+    } else {
+        ESP_LOGE(__func__, "Error deleting host info at index %d: %s", index, esp_err_to_name(err));
+    }
 
     nvs_close(nvs_handle);
     return err;

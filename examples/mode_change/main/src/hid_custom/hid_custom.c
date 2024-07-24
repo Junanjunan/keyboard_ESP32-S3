@@ -229,7 +229,13 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                 char bda_str[18];
                 // hidd_adv_params.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_WLST_CON_WLST;
                 is_new_connection = false;
-                if (keycode == HID_KEY_8) {
+                if (keycode == HID_KEY_GRAVE) {
+                    // Initialize the Bluetooth Connecton.
+                    delete_host_from_nvs(1);
+                    delete_host_from_nvs(2);
+                    delete_host_from_nvs(3);
+                    remove_all_bonded_devices();
+                } else if (keycode == HID_KEY_8) {
                     is_change_to_paired_device = true;
                     current_ble_idx = 1;
                     load_host_from_nvs(current_ble_idx, &host_to_be_connected);
