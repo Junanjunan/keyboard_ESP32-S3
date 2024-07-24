@@ -142,24 +142,7 @@ void save_ble_idx(int32_t ble_idx) {
 
 void show_bonded_devices(void)
 {
-    int dev_num = esp_ble_get_bond_device_num();
-    if (dev_num == 0) {
-        ESP_LOGI(__func__, "Bonded devices number zero\n");
-        return;
-    }
-
-    esp_ble_bond_dev_t *dev_list = (esp_ble_bond_dev_t *)malloc(sizeof(esp_ble_bond_dev_t) * dev_num);
-    if (!dev_list) {
-        ESP_LOGE(__func__, "malloc failed, return\n");
-        return;
-    }
-    esp_ble_get_bond_device_list(&dev_num, dev_list);
-    ESP_LOGI(__func__, "Bonded devices number : %d", dev_num);
-
-    ESP_LOGI(__func__, "Bonded devices list : %d", dev_num);
-    for (int i = 0; i < dev_num; i++) {
-        esp_log_buffer_hex(__func__, (void *)dev_list[i].bd_addr, sizeof(esp_bd_addr_t));
-    }
+    ESP_LOGI(HID_DEMO_TAG, "current ble_idx: %ld", current_ble_idx);
 
     bt_host_info_t host;
     load_host_from_nvs(1, &host);
@@ -171,6 +154,24 @@ void show_bonded_devices(void)
     load_host_from_nvs(3, &host);
     ESP_LOGI(HID_DEMO_TAG, "index 3 - Saved addr!!!: %02x:%02x:%02x:%02x:%02x:%02x",
                      host.bda[0], host.bda[1], host.bda[2], host.bda[3], host.bda[4], host.bda[5]);
+
+    int dev_num = esp_ble_get_bond_device_num();
+    if (dev_num == 0) {
+        ESP_LOGI(__func__, "Bonded devices number zero\n");
+        return;
+    }
+
+    esp_ble_bond_dev_t *dev_list = (esp_ble_bond_dev_t *)malloc(sizeof(esp_ble_bond_dev_t) * dev_num);
+    if (!dev_list) {
+        ESP_LOGE(__func__, "malloc failed, return\n");
+        return;
+    }
+
+    esp_ble_get_bond_device_list(&dev_num, dev_list);
+    ESP_LOGI(__func__, "Bonded devices list : %d", dev_num);
+    for (int i = 0; i < dev_num; i++) {
+        esp_log_buffer_hex(__func__, (void *)dev_list[i].bd_addr, sizeof(esp_bd_addr_t));
+    }
 
     free(dev_list);
 }
@@ -262,23 +263,12 @@ static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *
             ESP_LOGI(HID_DEMO_TAG, "ESP_HIDD_EVENT_BLE_CONNECT, remote_bda %02x:%02x:%02x:%02x:%02x:%02x",
                      param->connect.remote_bda[0], param->connect.remote_bda[1], param->connect.remote_bda[2],
                      param->connect.remote_bda[3], param->connect.remote_bda[4], param->connect.remote_bda[5]);
-
-            char host_name[20];
-            snprintf(host_name, sizeof(host_name), "Host_%ld", current_ble_idx);
-            bt_host_info_t connected_host;
-            memcpy(connected_host.bda, param->connect.remote_bda, sizeof(connected_host.bda));
-            strncpy(connected_host.name, host_name, MAX_BT_DEVICENAME_LENGTH);
-            connected_host.name[MAX_BT_DEVICENAME_LENGTH] = '\0';
-
-            save_ble_idx(current_ble_idx);
-            save_host_to_nvs(current_ble_idx, &connected_host);
             break;
         }
         case ESP_HIDD_EVENT_BLE_DISCONNECT: {
             ESP_LOGI(HID_DEMO_TAG, "ESP_HIDD_EVENT_BLE_DISCONNECT");
             sec_conn = false;
             char bda_str[18];
-            esp_ble_remove_bond_device(hidd_adv_params.peer_addr);
             memset(hidd_adv_params.peer_addr, 0, sizeof(hidd_adv_params.peer_addr));
             esp_ble_gap_start_advertising(&hidd_adv_params);
             break;
@@ -388,15 +378,25 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
             ESP_LOGI(HID_DEMO_TAG, "auth_mode = %d",param->ble_security.auth_cmpl.auth_mode);
             if(!param->ble_security.auth_cmpl.success) {
                 ESP_LOGE(HID_DEMO_TAG, "fail reason = 0x%x",param->ble_security.auth_cmpl.fail_reason);
+            } else {
+                ESP_LOGI(HID_DEMO_TAG, "success~!~!~!");
+                char host_name[20];
+                snprintf(host_name, sizeof(host_name), "Host_%ld", current_ble_idx);
+                bt_host_info_t connected_host;
+                memcpy(connected_host.bda, param->ble_security.auth_cmpl.bd_addr, sizeof(connected_host.bda));
+                strncpy(connected_host.name, host_name, MAX_BT_DEVICENAME_LENGTH);
+                connected_host.name[MAX_BT_DEVICENAME_LENGTH] = '\0';
+
+                save_ble_idx(current_ble_idx);
+                save_host_to_nvs(current_ble_idx, &connected_host);
+
+                esp_ble_gap_stop_advertising();
+
+                is_new_connection = false;
+                is_disconnect_by_keyboard = false;
+                is_change_to_paired_device = false;
             }
             memcpy(current_bda, param->ble_security.auth_cmpl.bd_addr, sizeof(current_bda));
-            is_new_connection = false;
-            is_disconnect_by_keyboard = false;
-            is_change_to_paired_device = false;
-
-            show_bonded_devices();
-            esp_ble_gap_stop_advertising();
-            
             break;
         case ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT");
@@ -463,16 +463,6 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
             break;
         case ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_REMOVE_BOND_DEV_COMPLETE_EVT");
-            if (!is_disconnect_by_keyboard && !is_bonded_addr_removed) {
-                ESP_LOGI(HID_DEMO_TAG, "!is_disconnect_by_keyboard && !is_bonded_addr_removed");
-                ESP_LOGI(HID_DEMO_TAG, "bda to be removed: %02x:%02x:%02x:%02x:%02x:%02x",
-                         current_bda[0], current_bda[1],
-                         current_bda[2], current_bda[3],
-                         current_bda[4], current_bda[5]);
-                esp_ble_remove_bond_device(current_bda);
-                is_bonded_addr_removed = true;
-            }
-            esp_ble_gap_start_advertising(&hidd_adv_params);
             break;
         case ESP_GAP_BLE_CLEAR_BOND_DEV_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_CLEAR_BOND_DEV_COMPLETE_EVT");
