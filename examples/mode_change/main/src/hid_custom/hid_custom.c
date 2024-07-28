@@ -230,6 +230,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
             if (use_fn) {
                 esp_hidd_send_consumer_value(hid_conn_id, keycode, 1);
                 char bda_str[18];
+                // bt_host_info_t black_host;
                 if (keycode == HID_KEY_GRAVE) {
                     // Initialize the Bluetooth Connecton.
                     delete_host_from_nvs(1);
@@ -240,6 +241,14 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                     is_change_to_paired_device = true;
                     current_ble_idx = 1;
                     load_host_from_nvs(current_ble_idx, &host_to_be_connected);
+
+                    // load_host_from_nvs(2, &black_host);
+                    // esp_ble_gap_update_whitelist(false, black_host.bda, BLE_WL_ADDR_TYPE_PUBLIC);
+                    // load_host_from_nvs(3, &black_host);
+                    // esp_ble_gap_update_whitelist(false, black_host.bda, BLE_WL_ADDR_TYPE_PUBLIC);
+                    // hidd_adv_params.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_WLST_CON_WLST;
+                    // esp_ble_gap_update_whitelist(true, host_to_be_connected.bda, BLE_WL_ADDR_TYPE_PUBLIC);
+
                     ESP_LOGI(
                         __func__, "ble_idx 1 bda: %s",
                         bda_to_string(host_to_be_connected.bda, bda_str, sizeof(bda_str))
@@ -250,6 +259,14 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                     is_change_to_paired_device = true;
                     current_ble_idx = 2;
                     load_host_from_nvs(current_ble_idx, &host_to_be_connected);
+
+                    // load_host_from_nvs(1, &black_host);
+                    // esp_ble_gap_update_whitelist(false, black_host.bda, BLE_WL_ADDR_TYPE_PUBLIC);
+                    // load_host_from_nvs(3, &black_host);
+                    // esp_ble_gap_update_whitelist(false, black_host.bda, BLE_WL_ADDR_TYPE_PUBLIC);
+                    // hidd_adv_params.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_WLST_CON_WLST;
+                    // esp_ble_gap_update_whitelist(true, host_to_be_connected.bda, BLE_WL_ADDR_TYPE_PUBLIC);
+
                     ESP_LOGI(
                         __func__, "ble_idx 2 bda: %s",
                         bda_to_string(host_to_be_connected.bda, bda_str, sizeof(bda_str))
@@ -260,6 +277,14 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                     is_change_to_paired_device = true;
                     current_ble_idx = 3;
                     load_host_from_nvs(current_ble_idx, &host_to_be_connected);
+
+                    // load_host_from_nvs(1, &black_host);
+                    // esp_ble_gap_update_whitelist(false, black_host.bda, BLE_WL_ADDR_TYPE_PUBLIC);
+                    // load_host_from_nvs(2, &black_host);
+                    // esp_ble_gap_update_whitelist(false, black_host.bda, BLE_WL_ADDR_TYPE_PUBLIC);
+                    // hidd_adv_params.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_WLST_CON_WLST;
+                    // esp_ble_gap_update_whitelist(true, host_to_be_connected.bda, BLE_WL_ADDR_TYPE_PUBLIC);
+
                     ESP_LOGI(
                         __func__, "ble_idx 3 bda: %s",
                         bda_to_string(host_to_be_connected.bda, bda_str, sizeof(bda_str))

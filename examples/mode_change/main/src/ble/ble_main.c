@@ -526,6 +526,7 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
 
                 esp_ble_gap_stop_advertising();
 
+                // hidd_adv_params.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY;
                 is_new_connection = false;
                 is_disconnect_by_keyboard = false;
                 is_change_to_paired_device = false;
