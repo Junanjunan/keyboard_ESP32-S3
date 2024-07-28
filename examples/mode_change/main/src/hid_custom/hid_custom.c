@@ -204,6 +204,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                 if (keycode == HID_KEY_8) {
                     ESP_LOGI("BLE", "~~~~~~~key8~~~~~~~");
                     current_ble_idx = 1;
+                    is_new_connection = true;
                     disconnect_all_bonded_devices();
                     show_bonded_devices();
                     esp_ble_gap_start_advertising(&hidd_adv_params);
@@ -211,6 +212,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                 } else if (keycode == HID_KEY_9) {
                     ESP_LOGI("BLE", "~~~~~~~key9~~~~~~~");
                     current_ble_idx = 2;
+                    is_new_connection = true;
                     disconnect_all_bonded_devices();
                     show_bonded_devices();
                     esp_ble_gap_start_advertising(&hidd_adv_params);
@@ -218,6 +220,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                 } else if (keycode == HID_KEY_0) {
                     ESP_LOGI("BLE", "~~~~~~~key0~~~~~~~");
                     current_ble_idx = 3;
+                    is_new_connection = true;
                     disconnect_all_bonded_devices();
                     show_bonded_devices();
                     esp_ble_gap_start_advertising(&hidd_adv_params);
@@ -227,8 +230,6 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
             if (use_fn) {
                 esp_hidd_send_consumer_value(hid_conn_id, keycode, 1);
                 char bda_str[18];
-                // hidd_adv_params.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_WLST_CON_WLST;
-                is_new_connection = false;
                 if (keycode == HID_KEY_GRAVE) {
                     // Initialize the Bluetooth Connecton.
                     delete_host_from_nvs(1);
@@ -243,6 +244,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                         __func__, "ble_idx 1 bda: %s",
                         bda_to_string(host_to_be_connected.bda, bda_str, sizeof(bda_str))
                     );
+                    disconnect_all_bonded_devices();
                     esp_ble_gap_start_advertising(&hidd_adv_params);
                 } else if (keycode == HID_KEY_9) {
                     is_change_to_paired_device = true;
@@ -252,6 +254,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                         __func__, "ble_idx 2 bda: %s",
                         bda_to_string(host_to_be_connected.bda, bda_str, sizeof(bda_str))
                     );
+                    disconnect_all_bonded_devices();
                     esp_ble_gap_start_advertising(&hidd_adv_params);
                 } else if (keycode == HID_KEY_0) {
                     is_change_to_paired_device = true;
@@ -261,6 +264,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                         __func__, "ble_idx 3 bda: %s",
                         bda_to_string(host_to_be_connected.bda, bda_str, sizeof(bda_str))
                     );
+                    disconnect_all_bonded_devices();
                     esp_ble_gap_start_advertising(&hidd_adv_params);
                 } else {
                     esp_hidd_send_consumer_value(hid_conn_id, keycode, 1);

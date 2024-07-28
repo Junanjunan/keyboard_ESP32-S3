@@ -178,9 +178,6 @@ void show_bonded_devices(void)
 
 
 void disconnect_all_bonded_devices(void) {
-    is_new_connection = true;
-    is_disconnect_by_keyboard = true;
-
     int dev_num = esp_ble_get_bond_device_num();
     if (dev_num == 0) {
         ESP_LOGI(__func__, "Bonded devices number zero\n");
@@ -251,6 +248,86 @@ void remove_unsaved_pairing_device(void) {
             esp_ble_remove_bond_device(dev_list[i].bd_addr);
         }
     }
+
+    free(dev_list);
+}
+
+void remove_unpaired_devices(void) {
+    int dev_num = esp_ble_get_bond_device_num();
+    if (dev_num == 0) {
+        ESP_LOGI(__func__, "Bonded devices number zero\n");
+        return;
+    }
+
+    esp_ble_bond_dev_t *dev_list = (esp_ble_bond_dev_t *)malloc(sizeof(esp_ble_bond_dev_t) * dev_num);
+    if (!dev_list) {
+        ESP_LOGE(__func__, "malloc failed, return\n");
+        return;
+    }
+
+    bt_host_info_t host_index_1;
+    bt_host_info_t host_index_2;
+    bt_host_info_t host_index_3;
+    load_host_from_nvs(1, &host_index_1);
+    load_host_from_nvs(2, &host_index_2);
+    load_host_from_nvs(3, &host_index_3);
+    bool host_1_exist = false;
+    bool host_2_exist = false;
+    bool host_3_exist = false;
+
+    esp_ble_get_bond_device_list(&dev_num, dev_list);
+
+    for (int i = 0; i < dev_num; i++) {
+        if (memcmp(dev_list[i].bd_addr, host_index_1.bda, sizeof(esp_bd_addr_t)) == 0) {
+            host_1_exist = true;
+        } else if (memcmp(dev_list[i].bd_addr, host_index_2.bda, sizeof(esp_bd_addr_t)) == 0) {
+            host_2_exist = true;
+        } else if (memcmp(dev_list[i].bd_addr, host_index_3.bda, sizeof(esp_bd_addr_t)) == 0) {
+            host_3_exist = true;
+        }
+    }
+
+    if (host_1_exist == false) {
+        delete_host_from_nvs(1);
+    }
+
+    if (host_2_exist == false) {
+        delete_host_from_nvs(2);
+    }
+
+    if (host_3_exist == false) {
+        delete_host_from_nvs(3);
+    }
+
+    free(dev_list);
+}
+
+void connect_allowed_device(esp_bd_addr_t allowed_bda) {
+    int dev_num = esp_ble_get_bond_device_num();
+    if (dev_num == 0) {
+        ESP_LOGI(__func__, "Bonded devices number zero\n");
+        return;
+    }
+
+    esp_ble_bond_dev_t *dev_list = (esp_ble_bond_dev_t *)malloc(sizeof(esp_ble_bond_dev_t) * dev_num);
+    if (!dev_list) {
+        ESP_LOGE(__func__, "malloc failed, return\n");
+        return;
+    }
+
+    esp_ble_get_bond_device_list(&dev_num, dev_list);
+    for (int i = 0; i < dev_num; i++) {
+        if (memcmp(dev_list[i].bd_addr, allowed_bda, ESP_BD_ADDR_LEN) == 0) {
+            continue;
+        } else {
+            esp_ble_gap_disconnect(dev_list[i].bd_addr);
+        }
+    }
+
+    free(dev_list);
+
+    ESP_LOGI(__func__, "Allowed device bda: %02x:%02x:%02x:%02x:%02x:%02x",
+             allowed_bda[0], allowed_bda[1], allowed_bda[2], allowed_bda[3], allowed_bda[4], allowed_bda[5]);
 }
 
 
@@ -442,7 +519,10 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
                 connected_host.name[MAX_BT_DEVICENAME_LENGTH] = '\0';
 
                 save_ble_idx(current_ble_idx);
-                save_host_to_nvs(current_ble_idx, &connected_host);
+
+                if (is_new_connection) {
+                    save_host_to_nvs(current_ble_idx, &connected_host);
+                }
 
                 esp_ble_gap_stop_advertising();
 
@@ -470,6 +550,7 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
         case ESP_GAP_BLE_ADV_START_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_ADV_START_COMPLETE_EVT");
             remove_unsaved_pairing_device();
+            remove_unpaired_devices();
             if (is_bonded_addr_removed) {
                 xTaskCreate(modify_removed_status_task, "modify_removed_status_task", 2048, NULL, 5, NULL);
             }
