@@ -23,6 +23,8 @@ extern bool is_change_to_paired_device;
 
 extern bt_host_info_t host_to_be_connected;
 
+extern bt_host_info_t empty_host;
+
 void show_bonded_devices(void);
 
 char *bda_to_string(esp_bd_addr_t bda, char *str, size_t size);

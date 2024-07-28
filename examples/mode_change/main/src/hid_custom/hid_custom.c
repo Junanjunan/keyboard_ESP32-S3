@@ -242,6 +242,11 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                     current_ble_idx = 1;
                     load_host_from_nvs(current_ble_idx, &host_to_be_connected);
 
+                    if (memcmp(host_to_be_connected.bda, empty_host.bda, sizeof(esp_bd_addr_t)) == 0) {
+                        ESP_LOGI(__func__, "No device to connect");
+                        return;
+                    }
+
                     // load_host_from_nvs(2, &black_host);
                     // esp_ble_gap_update_whitelist(false, black_host.bda, BLE_WL_ADDR_TYPE_PUBLIC);
                     // load_host_from_nvs(3, &black_host);
@@ -260,6 +265,11 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                     current_ble_idx = 2;
                     load_host_from_nvs(current_ble_idx, &host_to_be_connected);
 
+                    if (memcmp(host_to_be_connected.bda, empty_host.bda, sizeof(esp_bd_addr_t)) == 0) {
+                        ESP_LOGI(__func__, "No device to connect");
+                        return;
+                    }
+
                     // load_host_from_nvs(1, &black_host);
                     // esp_ble_gap_update_whitelist(false, black_host.bda, BLE_WL_ADDR_TYPE_PUBLIC);
                     // load_host_from_nvs(3, &black_host);
@@ -277,6 +287,11 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                     is_change_to_paired_device = true;
                     current_ble_idx = 3;
                     load_host_from_nvs(current_ble_idx, &host_to_be_connected);
+
+                    if (memcmp(host_to_be_connected.bda, empty_host.bda, sizeof(esp_bd_addr_t)) == 0) {
+                        ESP_LOGI(__func__, "No device to connect");
+                        return;
+                    }
 
                     // load_host_from_nvs(1, &black_host);
                     // esp_ble_gap_update_whitelist(false, black_host.bda, BLE_WL_ADDR_TYPE_PUBLIC);

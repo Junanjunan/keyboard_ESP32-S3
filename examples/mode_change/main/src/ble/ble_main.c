@@ -83,6 +83,11 @@ bool is_change_to_paired_device = false;
 
 bt_host_info_t host_to_be_connected;
 
+bt_host_info_t empty_host = {
+    .name = "Empty",
+    .bda = {0},
+};
+
 
 /*
  * Supplement to the Bluetooth Core Specification
