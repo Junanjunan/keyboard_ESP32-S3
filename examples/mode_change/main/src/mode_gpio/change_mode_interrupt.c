@@ -86,7 +86,8 @@ void gpio_task(void* arg) {
                     save_mode(MODE_BLE);
                     break;
                 case MODE_WIRELESS:
-                    // esp_now_main();
+                    esp_now_main();
+                    save_mode(MODE_WIRELESS);
                     break;
                 default:
                     while_break = true;
@@ -132,7 +133,8 @@ void gpio_task(void* arg) {
                     ble_main();
                     save_mode(MODE_BLE);
                 } else if (current_mode == MODE_WIRELESS) {
-                    // esp_now_main();
+                    esp_now_main();
+                    save_mode(MODE_WIRELESS);
                 }
             }
         }

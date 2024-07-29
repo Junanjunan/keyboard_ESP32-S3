@@ -17,7 +17,7 @@
 #define LED_STRIP_MAX_LEDS  1
 
 
-uint8_t peer_mac [ESP_NOW_ETH_ALEN] = {0x08, 0xD1, 0xF9, 0x27, 0x75, 0x30}; // MAC address of the peer device: esp32
+uint8_t peer_mac [ESP_NOW_ETH_ALEN] = {0x24, 0x58, 0x7C, 0xDE, 0x55, 0x5C}; // MAC address of the peer device: esp32
 
 static const char * TAG = "esp_now_init";
 

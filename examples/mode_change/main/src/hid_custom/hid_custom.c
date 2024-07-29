@@ -137,7 +137,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         }
         else if (current_mode == MODE_WIRELESS)
         {
-            // esp_now_send(peer_mac, espnow_release_key, 32);
+            esp_now_send(peer_mac, espnow_release_key, 32);
         }
         return;
     }
@@ -165,7 +165,9 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         uint32_t last_input_index = kbd_report.key_data[lpki].input_index;
         keycode = current_keycodes[last_output_index][last_input_index];
         ESP_LOGI(__func__, "pressed_keycode: %x", keycode);
-        show_bonded_devices();
+        if (current_mode == MODE_BLE) {
+            show_bonded_devices();
+        }
         if (is_modifier(keycode, last_output_index, last_input_index)) {
             keycode = 0;
         }
@@ -266,7 +268,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         }
         else if (current_mode == MODE_WIRELESS)
         {
-            // esp_now_send(peer_mac, converted_data, 32);
+            esp_now_send(peer_mac, converted_data, 32);
         }
     }
 }
@@ -291,7 +293,7 @@ keyboard_btn_cb_config_t cb_cfg_mode_usb = {
     .event_data.combination.key_num = 2,
     .event_data.combination.key_data = (keyboard_btn_data_t[]) {
         {5, 10},    // Fn
-        {1, 5},     // 1
+        {1, 5},     // 5
     },
 };
 
@@ -310,7 +312,7 @@ keyboard_btn_cb_config_t cb_cfg_mode_ble = {
     .event_data.combination.key_num = 2,
     .event_data.combination.key_data = (keyboard_btn_data_t[]) {
         {5, 10},    // Fn
-        {1, 6},     // 2
+        {1, 6},     // 6
     },
 };
 
@@ -329,7 +331,7 @@ keyboard_btn_cb_config_t cb_cfg_mode_espnow = {
     .event_data.combination.key_num = 2,
     .event_data.combination.key_data = (keyboard_btn_data_t[]) {
         {5, 10},    // Fn
-        {1, 7},     // 3
+        {1, 7},     // 7
     },
 };
 
