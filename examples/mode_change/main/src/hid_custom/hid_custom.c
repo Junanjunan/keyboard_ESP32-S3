@@ -113,13 +113,6 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
     bt_host_info_t loaded_host;
     bt_host_info_t host_to_be_disconnected;
 
-    // Hard coded MAC addresses - to be replaced with really connected MAC addresses
-    uint8_t remove_address1[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    uint8_t remove_address2[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    uint8_t mac_address1[] = {0x8c, 0x55, 0x4a, 0x42, 0x9e, 0x46};
-    uint8_t mac_address2[] = {0x06, 0x6f, 0x0e, 0x00, 0x16, 0x12};
-    uint8_t mac_address3[] = {0x41, 0x40, 0x3e, 0xa6, 0x36, 0x70};
-
     if (use_fn == true) {
         use_fn = false;
         switch_keycodes(use_fn);
@@ -202,7 +195,6 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
             ESP_LOGI(__func__, "use_fn, use_right_shift: %d, %d", use_fn, use_right_shift);
             if (use_fn && use_right_shift) {
                 if (keycode == HID_KEY_8) {
-                    ESP_LOGI("BLE", "~~~~~~~key8~~~~~~~");
                     current_ble_idx = 1;
                     is_new_connection = true;
                     disconnect_all_bonded_devices();
@@ -210,7 +202,6 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                     esp_ble_gap_start_advertising(&hidd_adv_params);
                     return;
                 } else if (keycode == HID_KEY_9) {
-                    ESP_LOGI("BLE", "~~~~~~~key9~~~~~~~");
                     current_ble_idx = 2;
                     is_new_connection = true;
                     disconnect_all_bonded_devices();
@@ -218,7 +209,6 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                     esp_ble_gap_start_advertising(&hidd_adv_params);
                     return;
                 } else if (keycode == HID_KEY_0) {
-                    ESP_LOGI("BLE", "~~~~~~~key0~~~~~~~");
                     current_ble_idx = 3;
                     is_new_connection = true;
                     disconnect_all_bonded_devices();
@@ -241,69 +231,30 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                     is_change_to_paired_device = true;
                     current_ble_idx = 1;
                     load_host_from_nvs(current_ble_idx, &host_to_be_connected);
-
                     if (memcmp(host_to_be_connected.bda, empty_host.bda, sizeof(esp_bd_addr_t)) == 0) {
                         ESP_LOGI(__func__, "No device to connect");
                         return;
                     }
-
-                    // load_host_from_nvs(2, &black_host);
-                    // esp_ble_gap_update_whitelist(false, black_host.bda, BLE_WL_ADDR_TYPE_PUBLIC);
-                    // load_host_from_nvs(3, &black_host);
-                    // esp_ble_gap_update_whitelist(false, black_host.bda, BLE_WL_ADDR_TYPE_PUBLIC);
-                    // hidd_adv_params.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_WLST_CON_WLST;
-                    // esp_ble_gap_update_whitelist(true, host_to_be_connected.bda, BLE_WL_ADDR_TYPE_PUBLIC);
-
-                    ESP_LOGI(
-                        __func__, "ble_idx 1 bda: %s",
-                        bda_to_string(host_to_be_connected.bda, bda_str, sizeof(bda_str))
-                    );
                     disconnect_all_bonded_devices();
                     esp_ble_gap_start_advertising(&hidd_adv_params);
                 } else if (keycode == HID_KEY_9) {
                     is_change_to_paired_device = true;
                     current_ble_idx = 2;
                     load_host_from_nvs(current_ble_idx, &host_to_be_connected);
-
                     if (memcmp(host_to_be_connected.bda, empty_host.bda, sizeof(esp_bd_addr_t)) == 0) {
                         ESP_LOGI(__func__, "No device to connect");
                         return;
                     }
-
-                    // load_host_from_nvs(1, &black_host);
-                    // esp_ble_gap_update_whitelist(false, black_host.bda, BLE_WL_ADDR_TYPE_PUBLIC);
-                    // load_host_from_nvs(3, &black_host);
-                    // esp_ble_gap_update_whitelist(false, black_host.bda, BLE_WL_ADDR_TYPE_PUBLIC);
-                    // hidd_adv_params.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_WLST_CON_WLST;
-                    // esp_ble_gap_update_whitelist(true, host_to_be_connected.bda, BLE_WL_ADDR_TYPE_PUBLIC);
-
-                    ESP_LOGI(
-                        __func__, "ble_idx 2 bda: %s",
-                        bda_to_string(host_to_be_connected.bda, bda_str, sizeof(bda_str))
-                    );
                     disconnect_all_bonded_devices();
                     esp_ble_gap_start_advertising(&hidd_adv_params);
                 } else if (keycode == HID_KEY_0) {
                     is_change_to_paired_device = true;
                     current_ble_idx = 3;
                     load_host_from_nvs(current_ble_idx, &host_to_be_connected);
-
                     if (memcmp(host_to_be_connected.bda, empty_host.bda, sizeof(esp_bd_addr_t)) == 0) {
                         ESP_LOGI(__func__, "No device to connect");
                         return;
                     }
-
-                    // load_host_from_nvs(1, &black_host);
-                    // esp_ble_gap_update_whitelist(false, black_host.bda, BLE_WL_ADDR_TYPE_PUBLIC);
-                    // load_host_from_nvs(2, &black_host);
-                    // esp_ble_gap_update_whitelist(false, black_host.bda, BLE_WL_ADDR_TYPE_PUBLIC);
-                    // hidd_adv_params.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_WLST_CON_WLST;
-                    // esp_ble_gap_update_whitelist(true, host_to_be_connected.bda, BLE_WL_ADDR_TYPE_PUBLIC);
-
-                    ESP_LOGI(
-                        __func__, "ble_idx 3 bda: %s",
-                        bda_to_string(host_to_be_connected.bda, bda_str, sizeof(bda_str))
-                    );
                     disconnect_all_bonded_devices();
                     esp_ble_gap_start_advertising(&hidd_adv_params);
                 } else {
