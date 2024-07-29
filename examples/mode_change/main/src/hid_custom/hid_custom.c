@@ -106,7 +106,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
 {
     uint8_t keycode = 0;
     uint8_t key[6] = {keycode};
-    uint8_t espnow_release_key [] = "0";
+    uint8_t espnow_release_key[8] = {0};
     uint8_t modifier = 0;
     uint16_t empty_key = 0;
 
@@ -178,6 +178,9 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         uint8_t converted_data [6];
         sprintf(temp, "%d", keycode);
         memcpy(converted_data, temp, sizeof(temp));
+        uint8_t espnow_send_data [8] = {0};
+        espnow_send_data[0] = modifier;
+        memcpy(&espnow_send_data[2], converted_data, sizeof(converted_data));
 
         if (current_mode == MODE_USB)
         {
@@ -268,7 +271,10 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         }
         else if (current_mode == MODE_WIRELESS)
         {
-            esp_now_send(peer_mac, converted_data, 32);
+            if (use_fn) {
+                espnow_send_data[1] = 1;
+            }
+            esp_now_send(peer_mac, espnow_send_data, 32);
         }
     }
 }
