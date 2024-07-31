@@ -98,6 +98,22 @@ void change_mode(connection_mode_t mode) {
     esp_restart();
 }
 
+void connect_new_ble_with_saving(uint8_t keycode) {
+    if (keycode == HID_KEY_8) {
+        current_ble_idx = 1;
+    } else if (keycode == HID_KEY_9) {
+        current_ble_idx = 2;
+    } else if (keycode == HID_KEY_0) {
+        current_ble_idx = 3;
+    } else {
+        return;
+    }
+    is_new_connection = true;
+    disconnect_all_bonded_devices();
+    show_bonded_devices();
+    esp_ble_gap_start_advertising(&hidd_adv_params);
+}
+
 
 void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_report, void *user_data)
 {
@@ -196,28 +212,8 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         {
             ESP_LOGI(__func__, "use_fn, use_right_shift: %d, %d", use_fn, use_right_shift);
             if (use_fn && use_right_shift) {
-                if (keycode == HID_KEY_8) {
-                    current_ble_idx = 1;
-                    is_new_connection = true;
-                    disconnect_all_bonded_devices();
-                    show_bonded_devices();
-                    esp_ble_gap_start_advertising(&hidd_adv_params);
-                    return;
-                } else if (keycode == HID_KEY_9) {
-                    current_ble_idx = 2;
-                    is_new_connection = true;
-                    disconnect_all_bonded_devices();
-                    show_bonded_devices();
-                    esp_ble_gap_start_advertising(&hidd_adv_params);
-                    return;
-                } else if (keycode == HID_KEY_0) {
-                    current_ble_idx = 3;
-                    is_new_connection = true;
-                    disconnect_all_bonded_devices();
-                    show_bonded_devices();
-                    esp_ble_gap_start_advertising(&hidd_adv_params);
-                    return;
-                }
+                connect_new_ble_with_saving(keycode);
+                return;
             }
             if (use_fn) {
                 esp_hidd_send_consumer_value(hid_conn_id, keycode, 1);
