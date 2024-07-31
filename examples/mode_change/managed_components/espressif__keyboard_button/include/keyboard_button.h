@@ -113,14 +113,6 @@ typedef struct {
  */
 esp_err_t keyboard_button_create(keyboard_btn_config_t *kbd_cfg, keyboard_btn_handle_t *kbd_handle);
 
-esp_err_t keyboard_button_multiple_create(
-    keyboard_btn_config_t *kbd_cfg,
-    keyboard_btn_handle_t *kbd_handle,
-    keyboard_btn_handle_t *kbd_handle_combi_mode_usb,
-    keyboard_btn_handle_t *kbd_handle_combi_mode_ble,
-    keyboard_btn_handle_t *kbd_handle_combi_mode_espnow
-);
-
 /**
  * @brief Delete the keyboard instance
  *

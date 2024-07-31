@@ -38,9 +38,6 @@ keyboard_btn_config_t cfg = {
 
 
 keyboard_btn_handle_t kbd_handle = NULL;
-keyboard_btn_handle_t kbd_handle_combi_mode_usb = NULL;
-keyboard_btn_handle_t kbd_handle_combi_mode_ble = NULL;
-keyboard_btn_handle_t kbd_handle_combi_mode_espnow = NULL;
 
 
 // make function key at the bottom of F8 line (Current: HID_KEY_GUI_RIGHT)
@@ -232,7 +229,11 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                     delete_host_from_nvs(2);
                     delete_host_from_nvs(3);
                     remove_all_bonded_devices();
-                } else if (keycode == HID_KEY_8) {
+                } else if (keycode == HID_KEY_5) {
+                    change_mode(MODE_USB);
+                } else if (keycode == HID_KEY_7) {
+                    change_mode(MODE_WIRELESS);
+                }else if (keycode == HID_KEY_8) {
                     is_change_to_paired_device = true;
                     current_ble_idx = 1;
                     load_host_from_nvs(current_ble_idx, &host_to_be_connected);
@@ -272,6 +273,11 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         else if (current_mode == MODE_WIRELESS)
         {
             if (use_fn) {
+                if (keycode == HID_KEY_5) {
+                    change_mode(MODE_USB);
+                } else if (keycode == HID_KEY_6) {
+                    change_mode(MODE_BLE);
+                }
                 espnow_send_data[1] = 1;
             }
             esp_now_send(peer_mac, espnow_send_data, 32);
@@ -285,68 +291,9 @@ keyboard_btn_cb_config_t cb_cfg = {
     .callback = keyboard_cb,
 };
 
-// USB
-static void combi_mode_usb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_report, void *user_data)
-{
-    if (current_mode != MODE_USB) {
-        change_mode(MODE_USB);
-    }
-}
-
-keyboard_btn_cb_config_t cb_cfg_mode_usb = {
-    .event = KBD_EVENT_COMBINATION,
-    .callback = combi_mode_usb,
-    .event_data.combination.key_num = 2,
-    .event_data.combination.key_data = (keyboard_btn_data_t[]) {
-        {5, 10},    // Fn
-        {1, 5},     // 5
-    },
-};
-
-
-// BLE
-static void combi_mode_ble(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_report, void *user_data)
-{
-    if (current_mode != MODE_BLE) {
-        change_mode(MODE_BLE);
-    }
-}
-
-keyboard_btn_cb_config_t cb_cfg_mode_ble = {
-    .event = KBD_EVENT_COMBINATION,
-    .callback = combi_mode_ble,
-    .event_data.combination.key_num = 2,
-    .event_data.combination.key_data = (keyboard_btn_data_t[]) {
-        {5, 10},    // Fn
-        {1, 6},     // 6
-    },
-};
-
-
-// espnow
-static void combi_mode_espnow(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_report, void *user_data)
-{
-    if (current_mode != MODE_WIRELESS) {
-        change_mode(MODE_WIRELESS);
-    }
-}
-
-keyboard_btn_cb_config_t cb_cfg_mode_espnow = {
-    .event = KBD_EVENT_COMBINATION,
-    .callback = combi_mode_espnow,
-    .event_data.combination.key_num = 2,
-    .event_data.combination.key_data = (keyboard_btn_data_t[]) {
-        {5, 10},    // Fn
-        {1, 7},     // 7
-    },
-};
-
 
 void keyboard_task(void) {
     switch_keycodes(use_fn);
-    keyboard_button_multiple_create(&cfg, &kbd_handle, &kbd_handle_combi_mode_usb, &kbd_handle_combi_mode_ble, &kbd_handle_combi_mode_espnow);
+    keyboard_button_create(&cfg, &kbd_handle);
     keyboard_button_register_cb(kbd_handle, cb_cfg, NULL);
-    keyboard_button_register_cb(kbd_handle_combi_mode_usb, cb_cfg_mode_usb, NULL);
-    keyboard_button_register_cb(kbd_handle_combi_mode_ble, cb_cfg_mode_ble, NULL);
-    keyboard_button_register_cb(kbd_handle_combi_mode_espnow, cb_cfg_mode_espnow, NULL);
 }
