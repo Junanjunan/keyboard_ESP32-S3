@@ -114,6 +114,37 @@ void connect_new_ble_with_saving(uint8_t keycode) {
     esp_ble_gap_start_advertising(&hidd_adv_params);
 }
 
+void handle_connected_ble_device(uint8_t keycode) {
+    if (keycode == HID_KEY_GRAVE) {
+        // Initialize the Bluetooth Connecton.
+        delete_host_from_nvs(1);
+        delete_host_from_nvs(2);
+        delete_host_from_nvs(3);
+        remove_all_bonded_devices();
+        return;
+    }
+
+    if (keycode == HID_KEY_8) {
+        current_ble_idx = 1;
+    } else if (keycode == HID_KEY_9) {
+        current_ble_idx = 2;
+    } else if (keycode == HID_KEY_0) {
+        current_ble_idx = 3;
+    } else {
+        return;
+    }
+
+    is_change_to_paired_device = true;
+    load_host_from_nvs(current_ble_idx, &host_to_be_connected);
+    if (memcmp(host_to_be_connected.bda, empty_host.bda, sizeof(esp_bd_addr_t)) == 0) {
+        ESP_LOGI(__func__, "No device to connect");
+        return;
+    }
+
+    disconnect_all_bonded_devices();
+    esp_ble_gap_start_advertising(&hidd_adv_params);
+}
+
 
 void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_report, void *user_data)
 {
@@ -219,46 +250,12 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                 esp_hidd_send_consumer_value(hid_conn_id, keycode, 1);
                 char bda_str[18];
                 // bt_host_info_t black_host;
-                if (keycode == HID_KEY_GRAVE) {
-                    // Initialize the Bluetooth Connecton.
-                    delete_host_from_nvs(1);
-                    delete_host_from_nvs(2);
-                    delete_host_from_nvs(3);
-                    remove_all_bonded_devices();
-                } else if (keycode == HID_KEY_5) {
+                if (keycode == HID_KEY_5) {
                     change_mode(MODE_USB);
                 } else if (keycode == HID_KEY_7) {
                     change_mode(MODE_WIRELESS);
-                }else if (keycode == HID_KEY_8) {
-                    is_change_to_paired_device = true;
-                    current_ble_idx = 1;
-                    load_host_from_nvs(current_ble_idx, &host_to_be_connected);
-                    if (memcmp(host_to_be_connected.bda, empty_host.bda, sizeof(esp_bd_addr_t)) == 0) {
-                        ESP_LOGI(__func__, "No device to connect");
-                        return;
-                    }
-                    disconnect_all_bonded_devices();
-                    esp_ble_gap_start_advertising(&hidd_adv_params);
-                } else if (keycode == HID_KEY_9) {
-                    is_change_to_paired_device = true;
-                    current_ble_idx = 2;
-                    load_host_from_nvs(current_ble_idx, &host_to_be_connected);
-                    if (memcmp(host_to_be_connected.bda, empty_host.bda, sizeof(esp_bd_addr_t)) == 0) {
-                        ESP_LOGI(__func__, "No device to connect");
-                        return;
-                    }
-                    disconnect_all_bonded_devices();
-                    esp_ble_gap_start_advertising(&hidd_adv_params);
-                } else if (keycode == HID_KEY_0) {
-                    is_change_to_paired_device = true;
-                    current_ble_idx = 3;
-                    load_host_from_nvs(current_ble_idx, &host_to_be_connected);
-                    if (memcmp(host_to_be_connected.bda, empty_host.bda, sizeof(esp_bd_addr_t)) == 0) {
-                        ESP_LOGI(__func__, "No device to connect");
-                        return;
-                    }
-                    disconnect_all_bonded_devices();
-                    esp_ble_gap_start_advertising(&hidd_adv_params);
+                } else if (keycode == HID_KEY_GRAVE || keycode == HID_KEY_8 || keycode == HID_KEY_9 || keycode == HID_KEY_0) {
+                    handle_connected_ble_device(keycode);
                 } else {
                     esp_hidd_send_consumer_value(hid_conn_id, keycode, 1);
                 }
