@@ -98,6 +98,34 @@ void change_mode(connection_mode_t mode) {
     esp_restart();
 }
 
+
+void change_mode_by_keycode(uint8_t keycode) {
+    if (current_mode == MODE_USB) {
+        if (keycode == HID_KEY_6) {
+            change_mode(MODE_BLE);
+        } else if (keycode == HID_KEY_7) {
+            change_mode(MODE_WIRELESS);
+        }
+    }
+
+    if (current_mode == MODE_BLE) {
+        if (keycode == HID_KEY_5) {
+            change_mode(MODE_USB);
+        } else if (keycode == HID_KEY_7) {
+            change_mode(MODE_WIRELESS);
+        }
+    }
+
+    if (current_mode == MODE_WIRELESS) {
+        if (keycode == HID_KEY_5) {
+            change_mode(MODE_USB);
+        } else if (keycode == HID_KEY_6) {
+            change_mode(MODE_BLE);
+        }
+    }
+}
+
+
 void connect_new_ble_with_saving(uint8_t keycode) {
     if (keycode == HID_KEY_8) {
         current_ble_idx = 1;
@@ -229,11 +257,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         if (current_mode == MODE_USB)
         {
             if (use_fn) {
-                if (keycode == HID_KEY_6) {
-                    change_mode(MODE_BLE);
-                } else if (keycode == HID_KEY_7) {
-                    change_mode(MODE_WIRELESS);
-                }
+                change_mode_by_keycode(keycode);
                 tud_hid_report(TUD_CONSUMER_CONTROL, &keycode, 2);
             } else {
                 tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, modifier, key);
@@ -250,11 +274,10 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                 esp_hidd_send_consumer_value(hid_conn_id, keycode, 1);
                 char bda_str[18];
                 // bt_host_info_t black_host;
-                if (keycode == HID_KEY_5) {
-                    change_mode(MODE_USB);
-                } else if (keycode == HID_KEY_7) {
-                    change_mode(MODE_WIRELESS);
-                } else if (keycode == HID_KEY_GRAVE || keycode == HID_KEY_8 || keycode == HID_KEY_9 || keycode == HID_KEY_0) {
+
+                change_mode_by_keycode(keycode);
+
+                if (keycode == HID_KEY_GRAVE || keycode == HID_KEY_8 || keycode == HID_KEY_9 || keycode == HID_KEY_0) {
                     handle_connected_ble_device(keycode);
                 } else {
                     esp_hidd_send_consumer_value(hid_conn_id, keycode, 1);
@@ -266,11 +289,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         else if (current_mode == MODE_WIRELESS)
         {
             if (use_fn) {
-                if (keycode == HID_KEY_5) {
-                    change_mode(MODE_USB);
-                } else if (keycode == HID_KEY_6) {
-                    change_mode(MODE_BLE);
-                }
+                change_mode_by_keycode(keycode);
                 espnow_send_data[1] = 1;
             }
             esp_now_send(peer_mac, espnow_send_data, 32);
