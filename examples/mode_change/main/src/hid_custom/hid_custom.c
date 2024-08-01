@@ -143,6 +143,10 @@ void connect_new_ble_with_saving(uint8_t keycode) {
 }
 
 void handle_connected_ble_device(uint8_t keycode) {
+    if (!use_fn) {
+        return;
+    }
+
     if (keycode == HID_KEY_GRAVE) {
         // Initialize the Bluetooth Connecton.
         delete_host_from_nvs(1);
@@ -273,10 +277,13 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
             keycode = 0;
         }
 
+        if (use_fn) {
+            change_mode_by_keycode(keycode);
+        }
+
         if (current_mode == MODE_USB)
         {
             if (use_fn) {
-                change_mode_by_keycode(keycode);
                 tud_hid_report(TUD_CONSUMER_CONTROL, &keycode, 2);
             } else {
                 uint8_t key_array[6] = {keycode};
@@ -290,14 +297,11 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                 connect_new_ble_with_saving(keycode);
                 return;
             }
+
+            handle_connected_ble_device(keycode);
+            
             if (use_fn) {
                 esp_hidd_send_consumer_value(hid_conn_id, keycode, 1);
-                change_mode_by_keycode(keycode);
-                if (keycode == HID_KEY_GRAVE || keycode == HID_KEY_8 || keycode == HID_KEY_9 || keycode == HID_KEY_0) {
-                    handle_connected_ble_device(keycode);
-                } else {
-                    esp_hidd_send_consumer_value(hid_conn_id, keycode, 1);
-                }
             } else {
                 esp_hidd_send_keyboard_value(hid_conn_id, modifier, &keycode, 1);
             }
@@ -306,9 +310,6 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         {
             uint8_t espnow_send_data[8];
             get_espnow_send_data(keycode, modifier, espnow_send_data);
-            if (use_fn) {
-                change_mode_by_keycode(keycode);
-            }
             esp_now_send(peer_mac, espnow_send_data, 8);
         }
     }
