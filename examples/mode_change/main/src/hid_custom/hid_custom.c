@@ -252,10 +252,6 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         uint32_t last_output_index = kbd_report.key_data[lpki].output_index;
         uint32_t last_input_index = kbd_report.key_data[lpki].input_index;
         keycode = current_keycodes[last_output_index][last_input_index];
-        ESP_LOGI(__func__, "pressed_keycode: %x", keycode);
-        if (current_mode == MODE_BLE) {
-            show_bonded_devices();
-        }
         if (is_modifier(keycode, last_output_index, last_input_index)) {
             keycode = 0;
         }
@@ -288,11 +284,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
             }
             if (use_fn) {
                 esp_hidd_send_consumer_value(hid_conn_id, keycode, 1);
-                char bda_str[18];
-                // bt_host_info_t black_host;
-
                 change_mode_by_keycode(keycode);
-
                 if (keycode == HID_KEY_GRAVE || keycode == HID_KEY_8 || keycode == HID_KEY_9 || keycode == HID_KEY_0) {
                     handle_connected_ble_device(keycode);
                 } else {
