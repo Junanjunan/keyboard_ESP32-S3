@@ -235,7 +235,7 @@ void send_release_report() {
 void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_report, void *user_data)
 {
     uint8_t keycode = 0;
-    uint8_t key[6] = {keycode};
+    uint8_t key_array[6] = {keycode};
     uint8_t modifier = 0;
 
     bt_host_info_t loaded_host;
@@ -272,7 +272,6 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         if (is_modifier(keycode, last_output_index, last_input_index)) {
             keycode = 0;
         }
-        uint8_t key[6] = {keycode};
 
         if (current_mode == MODE_USB)
         {
@@ -280,7 +279,8 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
                 change_mode_by_keycode(keycode);
                 tud_hid_report(TUD_CONSUMER_CONTROL, &keycode, 2);
             } else {
-                tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, modifier, key);
+                uint8_t key_array[6] = {keycode};
+                tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, modifier, key_array);
             }
         }
         else if (current_mode == MODE_BLE)
