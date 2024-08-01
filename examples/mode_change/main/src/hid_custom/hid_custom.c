@@ -173,6 +173,21 @@ void handle_connected_ble_device(uint8_t keycode) {
     esp_ble_gap_start_advertising(&hidd_adv_params);
 }
 
+void toggle_use_fn() {
+    use_fn = !use_fn;
+    switch_keycodes(use_fn);
+}
+
+void init_special_keys() {
+    if (use_fn == true) {
+        toggle_use_fn();
+    }
+
+    if (use_right_shift == true) {
+        use_right_shift = false;
+    }
+}
+
 
 void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_report, void *user_data)
 {
@@ -185,14 +200,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
     bt_host_info_t loaded_host;
     bt_host_info_t host_to_be_disconnected;
 
-    if (use_fn == true) {
-        use_fn = false;
-        switch_keycodes(use_fn);
-    }
-
-    if (use_right_shift == true) {
-        use_right_shift = false;
-    }
+    init_special_keys();
 
     if (kbd_report.key_change_num < 0) {
         if (current_mode == MODE_USB)
@@ -227,8 +235,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
             }
             if (output_index == 5 && input_index == 10) {
                 if (use_fn == false) {
-                    use_fn = true;
-                    switch_keycodes(use_fn);
+                    toggle_use_fn();
                 }
             }
             if (keycode == HID_KEY_RIGHT_SHIFT) {
