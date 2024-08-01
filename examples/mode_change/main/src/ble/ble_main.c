@@ -32,14 +32,6 @@
 
 
 /**
- * Brief:
- * This example Implemented BLE HID device profile related functions, in which the HID device
- * has 4 Reports (1 is mouse, 2 is keyboard and LED, 3 is Consumer Devices, 4 is Vendor devices).
- * Users can choose different reports according to their own application scenarios.
- * BLE HID profile inheritance and USB HID class.
- */
-
-/**
  * Note:
  * 1. Win10 does not support vendor report , So SUPPORT_REPORT_VENDOR is always set to FALSE, it defines in hidd_le_prf_int.h
  * 2. Update connection parameters are not allowed during iPhone HID encryption, slave turns
@@ -199,6 +191,7 @@ void disconnect_all_bonded_devices(void) {
     for (int i = 0; i < dev_num; i++) {
         esp_ble_gap_disconnect(dev_list[i].bd_addr);
     }
+
     free(dev_list);
 }
 
@@ -330,9 +323,6 @@ void connect_allowed_device(esp_bd_addr_t allowed_bda) {
     }
 
     free(dev_list);
-
-    ESP_LOGI(__func__, "Allowed device bda: %02x:%02x:%02x:%02x:%02x:%02x",
-             allowed_bda[0], allowed_bda[1], allowed_bda[2], allowed_bda[3], allowed_bda[4], allowed_bda[5]);
 }
 
 
@@ -363,7 +353,6 @@ static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *
             ESP_LOGI(HID_DEMO_TAG, "ESP_HIDD_EVENT_DEINIT_FINISH");
 	        break;
 		case ESP_HIDD_EVENT_BLE_CONNECT: {
-            ESP_LOGI(HID_DEMO_TAG, "ESP_HIDD_EVENT_BLE_CONNECT");
             hid_conn_id = param->connect.conn_id;
             ESP_LOGI(HID_DEMO_TAG, "ESP_HIDD_EVENT_BLE_CONNECT, remote_bda %02x:%02x:%02x:%02x:%02x:%02x",
                      param->connect.remote_bda[0], param->connect.remote_bda[1], param->connect.remote_bda[2],
@@ -373,7 +362,6 @@ static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *
         case ESP_HIDD_EVENT_BLE_DISCONNECT: {
             ESP_LOGI(HID_DEMO_TAG, "ESP_HIDD_EVENT_BLE_DISCONNECT");
             sec_conn = false;
-            char bda_str[18];
             memset(hidd_adv_params.peer_addr, 0, sizeof(hidd_adv_params.peer_addr));
             esp_ble_gap_start_advertising(&hidd_adv_params);
             break;
@@ -489,12 +477,13 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
     size_t name_len = strlen(bd_name);
     switch (event) {
         case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:
-            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT~!");
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT");
             load_host_from_nvs(0, &loaded_host);
             char bda_str[18];
             esp_ble_gap_start_advertising(&hidd_adv_params);
             break;
         case ESP_GAP_BLE_SEC_REQ_EVT:
+            ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_SEC_REQ_EVT");
             for(int i = 0; i < ESP_BD_ADDR_LEN; i++) {
                 ESP_LOGD(HID_DEMO_TAG, "%x:",param->ble_security.ble_req.bd_addr[i]);
             }
@@ -515,7 +504,7 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
             if(!param->ble_security.auth_cmpl.success) {
                 ESP_LOGE(HID_DEMO_TAG, "fail reason = 0x%x",param->ble_security.auth_cmpl.fail_reason);
             } else {
-                ESP_LOGI(HID_DEMO_TAG, "success~!~!~!");
+                ESP_LOGI(HID_DEMO_TAG, "success");
                 char host_name[20];
                 snprintf(host_name, sizeof(host_name), "Host_%ld", current_ble_idx);
                 bt_host_info_t connected_host;
@@ -531,7 +520,6 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
 
                 esp_ble_gap_stop_advertising();
 
-                // hidd_adv_params.adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY;
                 is_new_connection = false;
                 is_disconnect_by_keyboard = false;
                 is_change_to_paired_device = false;
@@ -689,14 +677,6 @@ void ble_main(void)
 
     bt_host_info_t loaded_host;
     char bda_str[18];
-    if (load_host_from_nvs(0, &loaded_host) == ESP_OK) {
-        ESP_LOGI(
-            __func__, "Host - 0: %s, Address: %s", 
-            loaded_host.name, 
-            bda_to_string(loaded_host.bda, bda_str, sizeof(bda_str))
-        );
-    }
-
     if (load_host_from_nvs(1, &loaded_host) == ESP_OK) {
         ESP_LOGI(
             __func__, "Host - 1: %s, Address: %s", 
