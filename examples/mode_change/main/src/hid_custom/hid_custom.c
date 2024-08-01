@@ -235,6 +235,41 @@ void send_release_report() {
     }
 }
 
+void handle_pressed_key(keyboard_btn_report_t kbd_report, uint8_t *keycode, uint8_t *modifier) {
+    // handle keycode, modifier, use_fn, use_right_shift by pressed_key
+    for (int i = 0; i < kbd_report.key_pressed_num; i++) {
+        uint32_t output_index = kbd_report.key_data[i].output_index;
+        uint32_t input_index = kbd_report.key_data[i].input_index;
+        *keycode = current_keycodes[output_index][input_index];
+        
+        // modifier handling
+        if (is_modifier(*keycode, output_index, input_index)) {
+            *modifier |= *keycode;
+        }
+
+        // use_fn handling
+        if (output_index == 5 && input_index == 10) {
+            if (use_fn == false) {
+                toggle_use_fn();
+            }
+        }
+
+        // use_right_shift handling
+        if (keycode == HID_KEY_RIGHT_SHIFT) {
+            use_right_shift = true;
+        }
+    }
+
+    // keycode handling
+    uint32_t lpki = kbd_report.key_pressed_num - 1; // lpki stands for 'last pressed key index'
+    uint32_t last_output_index = kbd_report.key_data[lpki].output_index;
+    uint32_t last_input_index = kbd_report.key_data[lpki].input_index;
+    *keycode = current_keycodes[last_output_index][last_input_index];
+    if (is_modifier(*keycode, last_output_index, last_input_index)) {
+        *keycode = 0;
+    }
+}
+
 
 void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_report, void *user_data)
 {
@@ -253,29 +288,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
     }
 
     if (kbd_report.key_change_num > 0) {
-        for (int i = 0; i < kbd_report.key_pressed_num; i++) {
-            uint32_t output_index = kbd_report.key_data[i].output_index;
-            uint32_t input_index = kbd_report.key_data[i].input_index;
-            keycode = current_keycodes[output_index][input_index];
-            if (is_modifier(keycode, output_index, input_index)) {
-                modifier |= keycode;
-            }
-            if (output_index == 5 && input_index == 10) {
-                if (use_fn == false) {
-                    toggle_use_fn();
-                }
-            }
-            if (keycode == HID_KEY_RIGHT_SHIFT) {
-                use_right_shift = true;
-            }
-        }
-        uint32_t lpki = kbd_report.key_pressed_num - 1; // lpki stands for 'last pressed key index'
-        uint32_t last_output_index = kbd_report.key_data[lpki].output_index;
-        uint32_t last_input_index = kbd_report.key_data[lpki].input_index;
-        keycode = current_keycodes[last_output_index][last_input_index];
-        if (is_modifier(keycode, last_output_index, last_input_index)) {
-            keycode = 0;
-        }
+        handle_pressed_key(kbd_report, &keycode, &modifier);
 
         if (use_fn) {
             change_mode_by_keycode(keycode);
