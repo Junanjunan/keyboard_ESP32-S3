@@ -214,6 +214,23 @@ void send_release_report() {
     }
 }
 
+ void get_espnow_send_data(uint8_t keycode, uint8_t modifier, uint8_t *espnow_send_data) {
+    // Convert keycode to uint8_t array for esp_now_send
+    char temp [6];
+    uint8_t converted_data [6];
+
+    sprintf(temp, "%d", keycode);
+    memcpy(converted_data, temp, sizeof(temp));
+
+    memset(espnow_send_data, 0, 8);
+
+    espnow_send_data[0] = modifier;
+    memcpy(&espnow_send_data[2], converted_data, sizeof(converted_data));
+    if (use_fn) {
+        espnow_send_data[1] = 1;
+    }
+}
+
 
 void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_report, void *user_data)
 {
@@ -257,15 +274,6 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         }
         uint8_t key[6] = {keycode};
 
-        // Convert keycode to uint8_t array for esp_now_send
-        char temp [6];
-        uint8_t converted_data [6];
-        sprintf(temp, "%d", keycode);
-        memcpy(converted_data, temp, sizeof(temp));
-        uint8_t espnow_send_data [8] = {0};
-        espnow_send_data[0] = modifier;
-        memcpy(&espnow_send_data[2], converted_data, sizeof(converted_data));
-
         if (current_mode == MODE_USB)
         {
             if (use_fn) {
@@ -296,11 +304,12 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         }
         else if (current_mode == MODE_WIRELESS)
         {
+            uint8_t espnow_send_data[8];
+            get_espnow_send_data(keycode, modifier, espnow_send_data);
             if (use_fn) {
                 change_mode_by_keycode(keycode);
-                espnow_send_data[1] = 1;
             }
-            esp_now_send(peer_mac, espnow_send_data, 32);
+            esp_now_send(peer_mac, espnow_send_data, 8);
         }
     }
 }
