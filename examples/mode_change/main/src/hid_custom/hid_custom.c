@@ -188,14 +188,38 @@ void init_special_keys() {
     }
 }
 
+void send_release_report() {
+    uint8_t empty_key = 0;
+    uint8_t empty_key_array[6] = {0};
+    uint8_t espnow_release_key[8] = {0};
+
+    if (current_mode == MODE_USB)
+    {
+        tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, 0, empty_key_array);
+        vTaskDelay(20 / portTICK_PERIOD_MS);
+        tud_hid_report(TUD_CONSUMER_CONTROL, &empty_key, 2);
+    }
+    else if (current_mode == MODE_BLE)
+    {
+        esp_hidd_send_keyboard_value(hid_conn_id, 0, &empty_key, 1);
+        vTaskDelay(20 / portTICK_PERIOD_MS);
+        esp_hidd_send_consumer_value(hid_conn_id, empty_key, 1);
+    }
+    else if (current_mode == MODE_WIRELESS)
+    {
+        esp_now_send(peer_mac, espnow_release_key, 32);
+        vTaskDelay(20 / portTICK_PERIOD_MS);
+        espnow_release_key[1] = 1;
+        esp_now_send(peer_mac, espnow_release_key, 32);
+    }
+}
+
 
 void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_report, void *user_data)
 {
     uint8_t keycode = 0;
     uint8_t key[6] = {keycode};
-    uint8_t espnow_release_key[8] = {0};
     uint8_t modifier = 0;
-    uint16_t empty_key = 0;
 
     bt_host_info_t loaded_host;
     bt_host_info_t host_to_be_disconnected;
@@ -203,25 +227,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
     init_special_keys();
 
     if (kbd_report.key_change_num < 0) {
-        if (current_mode == MODE_USB)
-        {
-            tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, 0, key);
-            vTaskDelay(20 / portTICK_PERIOD_MS);
-            tud_hid_report(TUD_CONSUMER_CONTROL, &empty_key, 2);
-        }
-        else if (current_mode == MODE_BLE)
-        {
-            esp_hidd_send_keyboard_value(hid_conn_id, 0, &keycode, 1);
-            vTaskDelay(20 / portTICK_PERIOD_MS);
-            esp_hidd_send_consumer_value(hid_conn_id, empty_key, 1);
-        }
-        else if (current_mode == MODE_WIRELESS)
-        {
-            esp_now_send(peer_mac, espnow_release_key, 32);
-            vTaskDelay(20 / portTICK_PERIOD_MS);
-            espnow_release_key[1] = 1;
-            esp_now_send(peer_mac, espnow_release_key, 32);
-        }
+        send_release_report();
         return;
     }
 
