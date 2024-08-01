@@ -142,6 +142,7 @@ void connect_new_ble_with_saving(uint8_t keycode) {
     esp_ble_gap_start_advertising(&hidd_adv_params);
 }
 
+
 void handle_connected_ble_device(uint8_t keycode) {
     if (!use_fn) {
         return;
@@ -177,10 +178,12 @@ void handle_connected_ble_device(uint8_t keycode) {
     esp_ble_gap_start_advertising(&hidd_adv_params);
 }
 
+
 void toggle_use_fn() {
     use_fn = !use_fn;
     switch_keycodes(use_fn);
 }
+
 
 void init_special_keys() {
     if (use_fn == true) {
@@ -191,6 +194,7 @@ void init_special_keys() {
         use_right_shift = false;
     }
 }
+
 
 void send_release_report() {
     uint8_t empty_key = 0;
@@ -218,7 +222,8 @@ void send_release_report() {
     }
 }
 
- void get_espnow_send_data(uint8_t keycode, uint8_t modifier, uint8_t *espnow_send_data) {
+
+void get_espnow_send_data(uint8_t keycode, uint8_t modifier, uint8_t *espnow_send_data) {
     // Convert keycode to uint8_t array for esp_now_send
     char temp [6];
     uint8_t converted_data [6];
@@ -234,6 +239,7 @@ void send_release_report() {
         espnow_send_data[1] = 1;
     }
 }
+
 
 void handle_pressed_key(keyboard_btn_report_t kbd_report, uint8_t *keycode, uint8_t *modifier) {
     // handle keycode, modifier, use_fn, use_right_shift by pressed_key
@@ -274,9 +280,8 @@ void handle_pressed_key(keyboard_btn_report_t kbd_report, uint8_t *keycode, uint
 void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_report, void *user_data)
 {
     uint8_t keycode = 0;
-    uint8_t key_array[6] = {keycode};
     uint8_t modifier = 0;
-
+    uint8_t key_array[6] = {keycode};
     bt_host_info_t loaded_host;
     bt_host_info_t host_to_be_disconnected;
 
