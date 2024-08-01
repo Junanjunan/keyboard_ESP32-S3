@@ -80,6 +80,8 @@ bt_host_info_t empty_host = {
     .bda = {0},
 };
 
+char bda_str[18];
+
 
 /*
  * Supplement to the Bluetooth Core Specification
@@ -479,7 +481,6 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
         case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT");
             load_host_from_nvs(0, &loaded_host);
-            char bda_str[18];
             esp_ble_gap_start_advertising(&hidd_adv_params);
             break;
         case ESP_GAP_BLE_SEC_REQ_EVT:
@@ -676,7 +677,6 @@ void ble_main(void)
     ESP_ERROR_CHECK( ret );
 
     bt_host_info_t loaded_host;
-    char bda_str[18];
     if (load_host_from_nvs(1, &loaded_host) == ESP_OK) {
         ESP_LOGI(
             __func__, "Host - 1: %s, Address: %s", 
