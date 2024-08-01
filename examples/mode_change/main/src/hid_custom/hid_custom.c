@@ -210,6 +210,9 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         else if (current_mode == MODE_WIRELESS)
         {
             esp_now_send(peer_mac, espnow_release_key, 32);
+            vTaskDelay(20 / portTICK_PERIOD_MS);
+            espnow_release_key[1] = 1;
+            esp_now_send(peer_mac, espnow_release_key, 32);
         }
         return;
     }
