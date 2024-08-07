@@ -261,7 +261,7 @@ void handle_pressed_key(keyboard_btn_report_t kbd_report, uint8_t *keycode, uint
         }
 
         // use_right_shift handling
-        if (keycode == HID_KEY_RIGHT_SHIFT) {
+        if (keycode == HID_KEY_SHIFT_RIGHT) {
             use_right_shift = true;
         }
     }
