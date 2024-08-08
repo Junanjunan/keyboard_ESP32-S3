@@ -281,9 +281,6 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
 {
     uint8_t keycode = 0;
     uint8_t modifier = 0;
-    uint8_t key_array[6] = {keycode};
-    bt_host_info_t loaded_host;
-    bt_host_info_t host_to_be_disconnected;
 
     init_special_keys();
 

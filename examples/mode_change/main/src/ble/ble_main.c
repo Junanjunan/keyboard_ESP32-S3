@@ -474,9 +474,7 @@ char *bda_to_string(esp_bd_addr_t bda, char *str, size_t size) {
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
 {
     bt_host_info_t loaded_host;
-    esp_bd_addr_t bd_addr;
-    char* bd_name = "Host_2\0";
-    size_t name_len = strlen(bd_name);
+
     switch (event) {
         case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:
             ESP_LOGI(HID_DEMO_TAG, "ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT");
