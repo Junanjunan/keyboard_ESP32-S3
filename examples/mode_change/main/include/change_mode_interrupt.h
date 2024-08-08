@@ -19,7 +19,7 @@ extern connection_mode_t current_mode;
  * @return  None
  * @note    This function will send the GPIO number to the queue
  * **/
-void IRAM_ATTR gpio_isr_handler(void *arg);
+void gpio_isr_handler(void *arg);
 
 
 /**
