@@ -328,7 +328,7 @@ void connect_allowed_device(esp_bd_addr_t allowed_bda) {
 }
 
 
-void modify_removed_status_task (void) {
+void modify_removed_status_task (void *pvParameters) {
     vTaskDelay(100 / portTICK_PERIOD_MS);
     is_bonded_addr_removed = false;
     vTaskDelete(NULL);
