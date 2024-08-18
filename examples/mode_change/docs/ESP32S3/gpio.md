@@ -74,6 +74,7 @@ Power-UP Glitches on Pins
 
   - Some pins are not in devkit although they are not restricted or not connected to specific function
   > - gpio 22 ~ 25: They are not in ESP32-S3 chip datasheet. They may not exist originally. They are used in another specific functions maybe... I have to check this.
+  > - gpio 26 ~ 32: for SPI flash moemory connection
   > - gpio 33: not used for specific functions. but does not exist
   > - gpio 34: not used for specific functions. but does not exist
   >> - Not answer but can be reference: https://docs.espressif.com/projects/esp-idf/en/v5.3/esp32s3/api-reference/peripherals/gpio.html
