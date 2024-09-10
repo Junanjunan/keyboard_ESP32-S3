@@ -80,7 +80,7 @@ void switch_keycodes(bool use_fn) {
 
 bool is_modifier (uint8_t keycode, uint8_t output_index, uint8_t input_index) {
     bool normal_key_indexes = (
-        (output_index == 0 && input_index == 9)     // HID_KEY_F7
+        (output_index == 0 && input_index == 8)     // HID_KEY_F7
         || (output_index == 1 && input_index == 3)  // HID_KEY_3
         || (output_index == 2 && input_index == 3)  // HID_KEY_E
         || (output_index == 3 && input_index == 1)  // HID_KEY_A
