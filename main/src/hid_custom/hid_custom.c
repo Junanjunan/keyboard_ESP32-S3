@@ -264,7 +264,7 @@ void handle_pressed_key(keyboard_btn_report_t kbd_report, uint8_t *keycode, uint
         }
 
         // use_fn handling
-        if (output_index == 5 && input_index == 10) {
+        if (output_index == 5 && input_index == 11) {
             if (use_fn == false) {
                 toggle_use_fn();
             }
