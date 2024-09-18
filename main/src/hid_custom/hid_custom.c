@@ -23,13 +23,15 @@ keyboard_btn_config_t cfg = {
     .output_gpios = (int[])
     {
         // 5, 6, 7, 8, 9, 10
-        2, 4, 5, 6, 7, 8,
+        // 2, 4, 5, 6, 7, 8,
+        4, 5, 6, 7, 15, 16
     },
     .output_gpio_num = 6,
     .input_gpios = (int[])
     {
         // 11, 12, 13, 14, 15, 16, 17, 18, 21, 33, 34, 35, 36, 37, 38, 47, 48
-        9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 21, 35, 36, 37, 38, 47, 48
+        // 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 21, 35, 36, 37, 38, 47, 48
+        1, 2, 42, 41, 40, 39, 38, 37, 36, 35, 45, 48, 47, 21, 14, 13, 12
         // GPIO 33 and 34 are not in devkitc, So I use 9, 10 for first start of column and row starts from 2, 4
         // If I need more analog pins (Now GPIO 1 is only one rest analog pin),
         // I think I have to use GPIO 39, 40, 41, 42 for JTAG pins
