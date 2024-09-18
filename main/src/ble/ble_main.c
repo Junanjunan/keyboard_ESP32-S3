@@ -169,7 +169,7 @@ void show_bonded_devices(void)
     esp_ble_get_bond_device_list(&dev_num, dev_list);
     ESP_LOGI(__func__, "Bonded devices list : %d", dev_num);
     for (int i = 0; i < dev_num; i++) {
-        esp_log_buffer_hex(__func__, (void *)dev_list[i].bd_addr, sizeof(esp_bd_addr_t));
+        ESP_LOG_BUFFER_HEX(__func__, (void *)dev_list[i].bd_addr, sizeof(esp_bd_addr_t));
     }
 
     free(dev_list);
