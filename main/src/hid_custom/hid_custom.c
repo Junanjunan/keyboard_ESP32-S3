@@ -123,11 +123,11 @@ void change_mode_by_keycode(uint8_t keycode) {
 
 
 void connect_new_ble_with_saving(uint8_t keycode) {
-    if (keycode == HID_KEY_8) {
+    if (keycode == HID_KEY_1) {
         current_ble_idx = 1;
-    } else if (keycode == HID_KEY_9) {
+    } else if (keycode == HID_KEY_2) {
         current_ble_idx = 2;
-    } else if (keycode == HID_KEY_0) {
+    } else if (keycode == HID_KEY_3) {
         current_ble_idx = 3;
     } else {
         return;
@@ -153,11 +153,11 @@ void handle_connected_ble_device(uint8_t keycode) {
         return;
     }
 
-    if (keycode == HID_KEY_8) {
+    if (keycode == HID_KEY_1) {
         current_ble_idx = 1;
-    } else if (keycode == HID_KEY_9) {
+    } else if (keycode == HID_KEY_2) {
         current_ble_idx = 2;
-    } else if (keycode == HID_KEY_0) {
+    } else if (keycode == HID_KEY_3) {
         current_ble_idx = 3;
     } else {
         return;
