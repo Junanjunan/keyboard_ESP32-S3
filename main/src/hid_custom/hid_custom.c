@@ -163,6 +163,7 @@ void handle_connected_ble_device(uint8_t keycode) {
         return;
     }
 
+    is_new_connection = false;          // With this, Cancel attempting to connect to a new device
     is_change_to_paired_device = true;
     load_host_from_nvs(current_ble_idx, &host_to_be_connected);
     if (memcmp(host_to_be_connected.bda, empty_host.bda, sizeof(esp_bd_addr_t)) == 0) {
