@@ -258,7 +258,7 @@ void handle_pressed_key(keyboard_btn_report_t kbd_report, uint8_t *keycode, uint
         }
 
         // use_right_shift handling
-        if (*keycode == KEYBOARD_MODIFIER_LEFTCTRL) {
+        if (*keycode == KEYBOARD_MODIFIER_RIGHTCTRL) {
             use_right_shift = true;
         }
     }
@@ -268,6 +268,9 @@ void handle_pressed_key(keyboard_btn_report_t kbd_report, uint8_t *keycode, uint
     uint32_t last_output_index = kbd_report.key_data[lpki].output_index;
     uint32_t last_input_index = kbd_report.key_data[lpki].input_index;
     *keycode = current_keycodes[last_output_index][last_input_index];
+    if (use_right_shift && *keycode == HID_KEY_ARROW_DOWN) {
+        *keycode = HID_KEY_ARROW_UP;
+    }
     if (is_modifier(*keycode, last_output_index, last_input_index)) {
         *keycode = 0;
     }
