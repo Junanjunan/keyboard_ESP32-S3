@@ -304,7 +304,7 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         }
         else if (current_mode == MODE_BLE)
         {
-            ESP_LOGI(__func__, "use_fn, use_right_shift: %d, %d", use_fn, use_right_shift);
+            // ESP_LOGI(__func__, "use_fn, use_right_shift: %d, %d", use_fn, use_right_shift);
             if (use_fn && use_right_shift) {
                 connect_new_ble_with_saving(keycode);
                 return;
