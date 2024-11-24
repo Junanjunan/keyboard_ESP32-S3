@@ -528,6 +528,12 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
                     save_host_to_nvs(current_ble_idx, &connected_host);
                 }
 
+                if (is_change_to_paired_device) {
+                    ESP_LOGI(__func__, "connect_allowed_device!!!!!!!!!!!");
+                    connect_allowed_device(host_to_be_connected.bda);
+                    return;
+                }
+
                 esp_ble_gap_stop_advertising();
 
                 is_new_connection = false;
