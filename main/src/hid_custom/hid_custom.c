@@ -11,6 +11,8 @@
 #include "ble_main.h"
 #include "esp_gap_ble_api.h"
 #include "hid_custom.h"
+#include "descriptors.h"
+#include "tusb_main.h"
 
 #define TUD_CONSUMER_CONTROL    3
 
@@ -255,6 +257,10 @@ void get_espnow_send_data(uint8_t keycode, uint8_t modifier, uint8_t *espnow_sen
 
 void handle_pressed_key(keyboard_btn_report_t kbd_report, uint8_t *keycode, uint8_t *modifier) {
     // handle keycode, modifier, use_fn, use_right_shift by pressed_key
+    uint8_t keycode_array[120] = {0};
+    uint8_t keynum = 0;
+    hid_nkey_report_t kbd_hid_report = {0};
+
     for (int i = 0; i < kbd_report.key_pressed_num; i++) {
         uint32_t output_index = kbd_report.key_data[i].output_index;
         uint32_t input_index = kbd_report.key_data[i].input_index;
@@ -279,6 +285,32 @@ void handle_pressed_key(keyboard_btn_report_t kbd_report, uint8_t *keycode, uint
         ) {
             use_right_shift = true;
         }
+
+        if (keycode != HID_KEY_NONE) {
+            keycode_array[keynum++] = *keycode;
+        }
+    }
+
+    if (keynum <= 6) {
+        kbd_hid_report.report_id = REPORT_ID_KEYBOARD;
+        kbd_hid_report.keyboard_report.modifier = *modifier;
+        for (int i = 0; i < keynum; i++) {
+            kbd_hid_report.keyboard_report.keycode[i] = keycode_array[i];
+        }
+    } else {
+        kbd_hid_report.report_id = REPORT_ID_FULL_KEY_KEYBOARD;
+        kbd_hid_report.keyboard_full_key_report.modifier = *modifier;
+        for (int i = 0; i < keynum; i++) {
+            // USAGE ID for keyboard starts from 4
+            uint8_t key = keycode_array[i] - 3;
+            uint8_t byteIndex = (key - 1) / 8;
+            uint8_t bitIndex = (key - 1) % 8;
+            kbd_hid_report.keyboard_full_key_report.keycode[byteIndex] |= (1 << bitIndex);
+        }
+    }
+
+    if (current_mode == MODE_USB) {
+        tinyusb_hid_keyboard_report(kbd_hid_report);
     }
 
     // keycode handling
@@ -299,13 +331,15 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
 
     init_special_keys();
 
-    if (kbd_report.key_change_num < 0) {
-        send_release_report();
-        return;
-    }
+    handle_pressed_key(kbd_report, &keycode, &modifier);
+
+    // if (kbd_report.key_change_num < 0) {
+    //     send_release_report();
+    //     return;
+    // }
 
     if (kbd_report.key_change_num > 0) {
-        handle_pressed_key(kbd_report, &keycode, &modifier);
+        // handle_pressed_key(kbd_report, &keycode, &modifier);
 
         if (use_fn) {
             change_mode_by_keycode(keycode);
@@ -315,9 +349,6 @@ void keyboard_cb(keyboard_btn_handle_t kbd_handle, keyboard_btn_report_t kbd_rep
         {
             if (use_fn) {
                 tud_hid_report(TUD_CONSUMER_CONTROL, &keycode, 2);
-            } else {
-                uint8_t key_array[6] = {keycode};
-                tud_hid_keyboard_report(HID_ITF_PROTOCOL_KEYBOARD, modifier, key_array);
             }
         }
         else if (current_mode == MODE_BLE)
