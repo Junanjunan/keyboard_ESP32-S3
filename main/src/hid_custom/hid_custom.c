@@ -144,6 +144,10 @@ void connect_new_ble_with_saving(uint8_t keycode) {
     esp_ble_gap_start_advertising(&hidd_adv_params);
 }
 
+void show_bonded_device_count(void) {
+    int dev_num = esp_ble_get_bond_device_num();
+    printf("Bonded devices number: %d\n", dev_num);
+}
 
 void handle_connected_ble_device(uint8_t keycode) {
     if (!use_fn) {
@@ -166,6 +170,10 @@ void handle_connected_ble_device(uint8_t keycode) {
         current_ble_idx = 2;
     } else if (keycode == HID_KEY_3) {
         current_ble_idx = 3;
+    } else if (keycode == HID_KEY_0) {
+        show_bonded_device_count();
+        show_bonded_devices();
+        return;
     } else {
         return;
     }
