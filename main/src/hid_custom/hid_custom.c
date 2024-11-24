@@ -264,7 +264,10 @@ void handle_pressed_key(keyboard_btn_report_t kbd_report, uint8_t *keycode, uint
         }
 
         // use_right_shift handling
-        if (*keycode == KEYBOARD_MODIFIER_RIGHTSHIFT) {
+        if (
+            is_modifier(*keycode, output_index, input_index)
+            && *keycode == KEYBOARD_MODIFIER_RIGHTSHIFT
+        ) {
             use_right_shift = true;
         }
     }
