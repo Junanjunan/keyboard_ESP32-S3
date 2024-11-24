@@ -51,7 +51,7 @@ static bool sec_conn = false;
 
 static void hidd_event_callback(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param);
 
-#define HIDD_DEVICE_NAME            "ESP32 BLE Keyboard"
+#define HIDD_DEVICE_NAME            "ESP-Keyboard"
 #define HID_APPEARANCE_KEYBOARD     0x03C1
 static uint8_t hidd_service_uuid128[] = {
     /* LSB <--------------------------------------------------------------------------------> MSB */
