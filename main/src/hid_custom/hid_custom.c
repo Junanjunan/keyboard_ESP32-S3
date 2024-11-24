@@ -10,6 +10,7 @@
 #include "nvs_flash.h"
 #include "ble_main.h"
 #include "esp_gap_ble_api.h"
+#include "hid_custom.h"
 
 #define TUD_CONSUMER_CONTROL    3
 
@@ -17,6 +18,8 @@ static uint16_t hid_conn_id = 0;
 
 bool use_fn = false;
 bool use_right_shift = false;
+esp_ble_bond_dev_t * dev_list_before_new_connection;
+int dev_num_before_new_connection;
 
 
 keyboard_btn_config_t cfg = {
@@ -132,6 +135,9 @@ void connect_new_ble_with_saving(uint8_t keycode) {
     } else {
         return;
     }
+    dev_num_before_new_connection = esp_ble_get_bond_device_num();
+    dev_list_before_new_connection = (esp_ble_bond_dev_t *)malloc(sizeof(esp_ble_bond_dev_t) * dev_num_before_new_connection);
+    esp_ble_get_bond_device_list(&dev_num_before_new_connection, dev_list_before_new_connection);
     is_new_connection = true;
     disconnect_all_bonded_devices();
     show_bonded_devices();

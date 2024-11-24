@@ -513,7 +513,22 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
 
                 save_ble_idx(current_ble_idx);
 
+                bool is_new_host = true;
                 if (is_new_connection) {
+                    for (int i = 0; i < dev_num_before_new_connection; i++) {
+                        if (memcmp(dev_list_before_new_connection[i].bd_addr, connected_host.bda, ESP_BD_ADDR_LEN) == 0) {
+                            esp_ble_gap_disconnect(dev_list_before_new_connection[i].bd_addr);
+                            esp_ble_gap_start_advertising(&hidd_adv_params);
+                            is_new_host = false;
+                        }
+                    }
+
+                    if (!is_new_host) {
+                        is_new_host = true;
+                        break;
+                    }
+
+                    free(dev_list_before_new_connection);
                     save_host_to_nvs(current_ble_idx, &connected_host);
                 }
 
