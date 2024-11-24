@@ -156,6 +156,7 @@ void handle_connected_ble_device(uint8_t keycode) {
         delete_host_from_nvs(2);
         delete_host_from_nvs(3);
         remove_all_bonded_devices();
+        free(dev_list_before_new_connection);
         return;
     }
 
