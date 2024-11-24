@@ -201,10 +201,6 @@ void disconnect_all_bonded_devices(void) {
 void remove_all_bonded_devices(void)
 {
     int dev_num = esp_ble_get_bond_device_num();
-    if (dev_num == 0) {
-        ESP_LOGI(__func__, "Bonded devices number zero\n");
-        return;
-    }
 
     esp_ble_bond_dev_t *dev_list = (esp_ble_bond_dev_t *)malloc(sizeof(esp_ble_bond_dev_t) * dev_num);
     if (!dev_list) {
