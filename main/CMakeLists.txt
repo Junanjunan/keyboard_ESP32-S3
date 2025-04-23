@@ -7,6 +7,8 @@ idf_component_register(
     INCLUDE_DIRS    "."
                     "include"
                     "include/ble"
+                    "include/btn_progress"
+                    "include/descriptors"
                     "include/tusb"
                     "include/hid_custom"
                     "include/esp_now"

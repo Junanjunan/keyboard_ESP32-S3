@@ -8,10 +8,13 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/queue.h"
 #include "tinyusb.h"
 #include "driver/gpio.h"
 #include "hid_custom.h"
 #include "esp_now_main.h"
+#include "btn_progress.h"
+#include "descriptors.h"
 
 #define APP_BUTTON (GPIO_NUM_0) // Use BOOT signal by default
 static const char *TAG = "example";
@@ -22,6 +25,13 @@ static const char *TAG = "example";
 #define TUSB_DESC_TOTAL_LEN      (TUD_CONFIG_DESC_LEN + CFG_TUD_HID * TUD_HID_DESC_LEN)
 #define TUD_CONSUMER_CONTROL    3
 
+typedef struct {
+    TaskHandle_t task_handle;
+    QueueHandle_t hid_queue;
+} tinyusb_hid_t;
+
+static tinyusb_hid_t *s_tinyusb_hid = NULL;
+
 
 /**
  * @brief HID report descriptor
@@ -30,6 +40,7 @@ static const char *TAG = "example";
  */
 const uint8_t hid_report_descriptor[] = {
     TUD_HID_REPORT_DESC_KEYBOARD(HID_REPORT_ID(HID_ITF_PROTOCOL_KEYBOARD)),
+    TUD_HID_REPORT_DESC_FULL_KEY_KEYBOARD(HID_REPORT_ID(REPORT_ID_FULL_KEY_KEYBOARD)),
     TUD_HID_REPORT_DESC_CONSUMER(HID_REPORT_ID(TUD_CONSUMER_CONTROL)),
 };
 
@@ -96,6 +107,76 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
 
 /********* Application ***************/
 
+static void tusb_device_task(void *arg)
+{
+    while (1) {
+        tud_task();
+    }
+}
+
+void tinyusb_hid_keyboard_report(hid_nkey_report_t report)
+{
+    static bool use_full_key = false;
+    // Remote wakeup
+    if (tud_suspended()) {
+        // Wake up host if we are in suspend mode
+        // and REMOTE_WAKEUP feature is enabled by host
+        tud_remote_wakeup();
+    } else {
+        switch (report.report_id) {
+        case REPORT_ID_FULL_KEY_KEYBOARD:
+            use_full_key = true;
+            break;
+        case REPORT_ID_KEYBOARD: {
+            if (use_full_key) {
+                hid_nkey_report_t _report = {0};
+                _report.report_id = REPORT_ID_FULL_KEY_KEYBOARD;
+                xQueueSend(s_tinyusb_hid->hid_queue, &_report, 0);
+                use_full_key = false;
+            }
+            break;
+        }
+        default:
+            break;
+        }
+
+        xQueueSend(s_tinyusb_hid->hid_queue, &report, 0);
+    }
+}
+
+// tinyusb_hid_task function to process the HID reports
+static void tinyusb_hid_task(void *arg)
+{
+    (void) arg;
+    hid_nkey_report_t report;
+    while (1) {
+        if (xQueueReceive(s_tinyusb_hid->hid_queue, &report, portMAX_DELAY)) {
+            // Remote wakeup
+            if (tud_suspended()) {
+                // Wake up host if we are in suspend mode
+                // and REMOTE_WAKEUP feature is enabled by host
+                tud_remote_wakeup();
+                xQueueReset(s_tinyusb_hid->hid_queue);
+            } else {
+                if (report.report_id == REPORT_ID_KEYBOARD) {
+                    tud_hid_n_report(0, REPORT_ID_KEYBOARD, &report.keyboard_report, sizeof(report.keyboard_report));
+                } else if (report.report_id == REPORT_ID_FULL_KEY_KEYBOARD) {
+                    tud_hid_n_report(0, REPORT_ID_FULL_KEY_KEYBOARD, &report.keyboard_full_key_report, sizeof(report.keyboard_full_key_report));
+                } else if (report.report_id == REPORT_ID_CONSUMER) {
+                    tud_hid_n_report(0, REPORT_ID_CONSUMER, &report.consumer_report, sizeof(report.consumer_report));
+                } else {
+                    // Unknown report
+                    continue;
+                }
+                // Wait until report is sent
+                if (!ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(10))) {
+                    ESP_LOGW(TAG, "Report not sent");
+                }
+            }
+        }
+    }
+}
+
 void tusb_main(void)
 {
     // Initialize button that will trigger HID reports
@@ -118,5 +199,12 @@ void tusb_main(void)
         .configuration_descriptor = hid_configuration_descriptor,
     };
 
+    s_tinyusb_hid = calloc(1, sizeof(tinyusb_hid_t));
+
     ESP_ERROR_CHECK(tinyusb_driver_install(&tusb_cfg));
+
+    s_tinyusb_hid->hid_queue = xQueueCreate(10, sizeof(hid_nkey_report_t));   // Adjust queue length and item size as per your requirement
+    xTaskCreate(tusb_device_task, "TinyUSB", 4096, NULL, 5, NULL);
+    xTaskCreate(tinyusb_hid_task, "tinyusb_hid_task", 4096, NULL, 9, &s_tinyusb_hid->task_handle);
+    xTaskNotifyGive(s_tinyusb_hid->task_handle);
 }
